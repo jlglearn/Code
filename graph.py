@@ -1,4 +1,4 @@
-import array;
+ import array;
 from random import randint;
 
 class Graph:
@@ -82,30 +82,45 @@ class Graph:
             return l;
         return None;
         
-    def BFT(self, s, callback):
+        
+    def BFT(self, s, callback, arg):
+        if callback == None:
+            return 0;
+    
         if not s in self.V:
             return 0;
         
         q = array.array('i');        
         visited = {};
         
-        callback(0,None,None,None);  #callback(traverse_start, x,x,x)        
+        callback(0,None,None,None,None,arg);  #callback(traverse_start, x,x,x,x,arg)
+            
         q.append(s);
         visited[s] = {'L':0, 'P':[s]};
 
         i = 0;
+        returnValue = 1;
+        
         while len(q) > 0:
             v = q.pop(0);
             N = self.NeighborsOf(v);
+            p = visited[v]['P'];
+            l = visited[v]['L'] + 1;
+            
             for u in N:
                 if not u in visited:
-                    visited[u]['L'] = visited[v]['L'] + 1;
-                    visited[u]['P'] = [x for x in visited[v]['P']].append(u);
+                    visited[u]={'L': l, 'P':p};
+                    visited[u]['P'].append(u);
                     q.append(u);
-            callback(1,i,v,visited[v]['L']);    #callback(traverse_item, i, item, level)
-            i += 1;
-            
-        callback(2,i,None,None);     #callback(traverse_end, count, x, x)
+                    i += 1;
+                    
+                    callbackResult = callback(1,i,u,l,s,arg);    #callback(traverse_item, i, item, level, rootNode, arg)
+                    (op,returnValue) = callbackResult;
+                    if op == 0:
+                        #stop and return returnValue
+                        callback(2,i,None,None,None,arg);
+                        return returnValue;                        
+        
+        callback(2,i,None,None,None,arg);     #callback(traverse_end, count, x, x, x)
         return 1;
         
-     
