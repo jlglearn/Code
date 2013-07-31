@@ -50,12 +50,20 @@ class Graph:
         f.close();
         
     def Vertices(self):
-        return [v for v in self.V.keys()].sort();
+        l = [v for v in self.V.keys()];
+        l.sort();
+        return l;
+        
+    def Edges(self):
+        return {e:self.E[e] for e in self.E.keys()};
         
     def DegreeOf(self,v):
         if v in self.V:
             return len(self.V[v]['E']);
         return 0;
+        
+    def AvgDegree(self):
+        return (2*len(self.E))/len(self.V);
         
     def VertexCount(self):
         return len(self.V);
@@ -83,7 +91,7 @@ class Graph:
         
         callback(0,None,None,None);  #callback(traverse_start, x,x,x)        
         q.append(s);
-        visited[s] = 0;
+        visited[s] = {'L':0, 'P':[s]};
 
         i = 0;
         while len(q) > 0:
@@ -91,11 +99,13 @@ class Graph:
             N = self.NeighborsOf(v);
             for u in N:
                 if not u in visited:
-                    visited[u] = visited[v] + 1;
+                    visited[u]['L'] = visited[v]['L'] + 1;
+                    visited[u]['P'] = [x for x in visited[v]['P']].append(u);
                     q.append(u);
-            callback(1,i,v,visited[v]);    #callback(traverse_item, i, item, level)
+            callback(1,i,v,visited[v]['L']);    #callback(traverse_item, i, item, level)
             i += 1;
             
         callback(2,i,None,None);     #callback(traverse_end, count, x, x)
         return 1;
         
+     
