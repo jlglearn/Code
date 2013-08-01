@@ -134,7 +134,7 @@ class Graph:
         callback(2,i,None,None,None,arg);     #callback(traverse_end, count, x, x, x)
         return 1;
 		
-    def Components():
+    def Components(self):
         state = { 'C':{}, 'v':set() };
         for node in self.V:
             #if we haven't explored node, then start a BFT rooted on it.
