@@ -146,50 +146,45 @@ class Graph:
                 self.BFT(node, CalcComponentsCallback, state);
         return state['C'];
         
-    def DFT(self, v, callback, arg):
+    def DFT(self, s, callback, arg):
     
-        if not v in self.V:
+        if not s in self.V:
             return 0;
         
         stack = array.array('i');
         visited = {};
-        
-        callback(0, None, None, None, None, arg);
-        
         i = 0;
-        stack.append(v);
-        visited[v] = { 'P': [v], 'L': 0, 'R': False };
+        
+        callback(0,None,None,None,None,arg);
+        
+        visited[s]={'L':0, 'P':[s], 'R':False};
+        stack.append(s);
         
         while len(stack) > 0:
         
-            u = stack.pop();
-            l = visited[u]['L'];
-            p = visited[u]['P'];
+            v = stack.pop();
+            p = visited[v]['P'];
+            l = visited[v]['L'];
             
-            if not visited[u]['R']:
-                visited[u]['R'] = True;
-                      
-                (op, result) = callback(1, i, u, l, v, arg);
+            if not visited[v]['R']:
+                visited[v]['R'] = True;
+                (o,r) = callback(1,i,v,l,s,arg);
                 i += 1;
-                
-                if (op == 0):
-                    callback(2, i, None, None, None, arg);
-                    return result;
+                if o == 0:
+                    callback(2,i,None,None,None,arg);
+                    return r;
                     
-                N = self.NeighborsOf(u);
+            for n in self.NeighborsOf(v):
+            
+                if not (n in visited):
                 
-                for n in N:
-                    if not ((n in visited) and visited[n]['R']):
-                        visited[n] = { 'P':[x for x in p], 'L':l+1, 'R':False};
-                        visited[n]['P'].append(n);
-                        stack.append(n);
+                    visited[n]={'L':l+1, 'P':[x for x in p], 'R':False};
+                    visited[n]['P'].append(n);
+                    
+                    stack.append(v); #there may be some unvisited neighbors of v
+                    stack.append(n); #but we now want to first explore n and its neighbors
+                    break; #break out of for loop to explore n and its neighbors;
                     
         callback(2,i,None,None,None,arg);
         return 1;
-
- 
-
- 
-
-
  
