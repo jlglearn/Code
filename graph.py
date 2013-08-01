@@ -145,5 +145,5 @@ class Graph:
                 state['C'][iComponent] |= s;
                 state['v'] |= s;
                 self.BFT(node, CalcComponentsCallback, state);
-        
         return state['C'];
+ 
