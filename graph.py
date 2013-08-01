@@ -1,6 +1,16 @@
- import array;
+import array;
 from random import randint;
 
+def CalcComponentsCallback( op, i, v, l, r, state ):
+    if op == 1:
+        iComponent = len(state['C'])-1;
+        s = set([v]);
+        state['C'][iComponent] |= s;
+        state['v'] |= s;
+    else:
+        pass;
+    return (1,None);
+	
 class Graph:
     def __init__(self):
         self.V = {};
@@ -123,4 +133,17 @@ class Graph:
         
         callback(2,i,None,None,None,arg);     #callback(traverse_end, count, x, x, x)
         return 1;
+		
+    def Components():
+        state = { 'C' = {}, 'v' = set() };
+        for node in self.V:
+            #if we haven't explored node, then start a BFT rooted on it.
+            if not (node in state['v']):
+                iComponent = len(state['C']);
+                s = set([node]);
+                state['C'][iComponent] = set();
+                state['C'][iComponent] |= s;
+                state['v'] |= s;
+                self.BFT(node, CalcComponentsCallback, state);
         
+        return state['C'];
