@@ -147,44 +147,49 @@ class Graph:
         return state['C'];
         
     def DFT(self, v, callback, arg):
-        if not (v in self.V):
+    
+        if not v in self.V:
             return 0;
         
-        if callback == None:
-            return 0;
-            
         stack = array.array('i');
         visited = {};
         
-        callback( 0, None, None, None, None, arg );
-     
-        i = 0;   
-        visited[v] = { 'L': 0, 'P': [v] };
+        callback(0, None, None, None, None, arg);
+        
+        i = 0;
         stack.append(v);
+        visited[v] = { 'P': [v], 'L': 0, 'R': False };
         
         while len(stack) > 0:
         
             u = stack.pop();
             l = visited[u]['L'];
-            p = [x for x in visited[u]['P']];
+            p = visited[u]['P'];
             
-            (op, result) = callback(1, i, u, l, v, arg);
-            i += 1;
-            
-            if (op == 0):
-                callback(2, i, None, None, None, arg);
-                return result;
-            
-            N = self.NeighborsOf(u);
-            
-            for w in N:
-                if not w in visited:
-                    visited[w] = {'L':l+1, 'P':p};
-                    visited[w]['P'].append(w);
-                    stack.append(w);
+            if not visited[u]['R']:
+                visited[u]['R'] = True;
+                      
+                (op, result) = callback(1, i, u, l, v, arg);
+                i += 1;
                 
-        callback(2, i, None, None, None, arg);
+                if (op == 0):
+                    callback(2, i, None, None, None, arg);
+                    return result;
+                    
+                N = self.NeighborsOf(u);
+                
+                for n in N:
+                    if not ((n in visited) and visited[n]['R']):
+                        visited[n] = { 'P':[x for x in p], 'L':l+1, 'R':False};
+                        visited[n]['P'].append(n);
+                        stack.append(n);
+                    
+        callback(2,i,None,None,None,arg);
         return 1;
+
  
+
+ 
+
 
  
