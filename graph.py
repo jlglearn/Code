@@ -96,7 +96,6 @@ class Graph:
     def BFT(self, s, callback, arg):
     
         if not s in self.V:
-            print "Error: ", s, " not in self.V";
             return 0;
         
         q = array.array('i');        
