@@ -94,10 +94,9 @@ class Graph:
         
         
     def BFT(self, s, callback, arg):
-        if callback == None:
-            return 0;
     
         if not s in self.V:
+            print "Error: ", s, " not in self.V";
             return 0;
         
         q = array.array('i');        
@@ -113,23 +112,23 @@ class Graph:
         
         while len(q) > 0:
             v = q.pop(0);
+            p = [x for x in visited[v]['P']];
+            l = visited[v]['L'];
+            
+            (op, returnValue) = callback(1, i, v, l, s, arg);
+            i += 1;
+            
+            if (op == 0):
+                callback(2, i, None, None, None, arg);
+                return returnValue;
+                
             N = self.NeighborsOf(v);
-            p = visited[v]['P'];
-            l = visited[v]['L'] + 1;
             
             for u in N:
                 if not u in visited:
-                    visited[u]={'L': l, 'P':p};
+                    visited[u]={'L': l+1, 'P':p};
                     visited[u]['P'].append(u);
                     q.append(u);
-                    i += 1;
-                    
-                    callbackResult = callback(1,i,u,l,s,arg);    #callback(traverse_item, i, item, level, rootNode, arg)
-                    (op,returnValue) = callbackResult;
-                    if op == 0:
-                        #stop and return returnValue
-                        callback(2,i,None,None,None,arg);
-                        return returnValue;                        
         
         callback(2,i,None,None,None,arg);     #callback(traverse_end, count, x, x, x)
         return 1;
@@ -146,4 +145,46 @@ class Graph:
                 state['v'] |= s;
                 self.BFT(node, CalcComponentsCallback, state);
         return state['C'];
+        
+    def DFT(self, v, callback, arg):
+        if not (v in self.V):
+            return 0;
+        
+        if callback == None:
+            return 0;
+            
+        stack = array.array('i');
+        visited = {};
+        
+        callback( 0, None, None, None, None, arg );
+     
+        i = 0;   
+        visited[v] = { 'L': 0, 'P': [v] };
+        stack.append(v);
+        
+        while len(stack) > 0:
+        
+            u = stack.pop();
+            l = visited[u]['L'];
+            p = [x for x in visited[u]['P']];
+            
+            (op, result) = callback(1, i, u, l, v, arg);
+            i += 1;
+            
+            if (op == 0):
+                callback(2, i, None, None, None, arg);
+                return result;
+            
+            N = self.NeighborsOf(u);
+            
+            for w in N:
+                if not w in visited:
+                    visited[w] = {'L':l+1, 'P':p};
+                    visited[w]['P'].append(w);
+                    stack.append(w);
+                
+        callback(2, i, None, None, None, arg);
+        return 1;
+ 
+
  
