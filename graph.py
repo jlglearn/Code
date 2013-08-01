@@ -135,7 +135,7 @@ class Graph:
         return 1;
 		
     def Components():
-        state = { 'C' = {}, 'v' = set() };
+        state = { 'C':{}, 'v':set() };
         for node in self.V:
             #if we haven't explored node, then start a BFT rooted on it.
             if not (node in state['v']):
