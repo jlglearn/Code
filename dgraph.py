@@ -18,6 +18,9 @@ class DGraph:
     def EdgeCount(self):
         return len(self.E);
         
+    def VertexCount(self):
+        return len(self.V);
+        
     def Load(self,fn):
         f = open(fn);
         i = 0;
