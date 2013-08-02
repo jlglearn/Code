@@ -10,6 +10,7 @@ class DGraph:
     def __init__(self):
         self.V = {};
         self.m = 0;
+        self.E = {};
 
     def BFS(v,fn,arg):
         pass;
@@ -29,7 +30,9 @@ class DGraph:
                 self.V[o]={'OE':set(), 'IE':set()};
                 self.E[o]=set();
                 
-            if not d in self.V: self.V[d]={'OE':set(), 'IE':set()};
+            if not d in self.V: 
+                self.V[d]={'OE':set(), 'IE':set()};
+                self.E[d]=set();
             
             if not (d in self.V[o]['OE']):
                 self.V[o]['OE'] |= set([d]);
