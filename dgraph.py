@@ -1,12 +1,5 @@
 import array;
 from random import randint;
-
-
-def ComputeComponentsCallback(op, i, v, l, s, state):
-    if op == 1:
-        iComponent = len(state['C'])-1;  
-        state['C'][iComponent] |= set([v]);    
-    return (1,None);
     
 def BFSCallback(op, i, v, l, s, state):
     if op == 1:
@@ -36,8 +29,7 @@ class DGraph:
         l = list(self.E[v]);
         l.sort();
         return l;
-        
-        
+               
     def DFT(self, s, fn, arg):
         
         if not s in self.V:
@@ -166,42 +158,7 @@ class DGraph:
         
         (action, result) = fn(2, i, None, None, None, arg);
         return result if action == 0 else 1;
-        
-    def Components(self):
-        state = {'C': [] };
-        remaining = set(self.V.keys());
-        iComponent = 0;
-        
-        while len(remaining) > 0:
-                
-            print "Starting iteration: ", iComponent, ", remaining=", len(remaining);
             
-            v = list(remaining)[0];
-            state['C'].append(set());
-          
-            self.BFT(v,ComputeComponentsCallback,state);
-            
-            print "BFT: found component with ", len(state['C'][iComponent]), " vertices";
-            
-            #at the end of each BFT() call, state['C'] will be augmented with a set of vertices
-            #belonging to the latest computed component
-            #compute the set of remaining vertices by removing from it the set of vertices added to
-            #the latest component
-            
-            remaining = remaining - state['C'][iComponent];
-            iComponent += 1;
-            
-            print "After previous BFT, ", len(remaining), " vertices remain unexplored.";
-            
-            lengths = "";
-            for s in state['C']:
-                lengths += "" + str(len(s)) + ", ";
-                
-            print "Progress: ", iComponent, "components: " + lengths, " remaining: ", len(remaining);
-            
-        return state['C'];
-            
-    
     def EdgeCount(self):
         return self.m;
         
