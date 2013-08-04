@@ -1,48 +1,57 @@
 import array;
 from random import randint;
-    
-def BFSCallback(op, i, v, l, s, state):
-    if op == 1:
-        if v == state['v']:
-            state['d'] = l;
-            return (0, l);
-    elif op == 0:
-        state['d'] = -1;
-    elif op == 2:
-        return (0, state['d']);
-        
-    return (1,None);
-            
 
+def SCCCallback1(op,i,v,l,s,state):
+    if op==1:
+        if not v in state['v']:
+            state['v'][v] = s;
+    elif op==3:
+        state['b'].append(v);
+    return (1,None);
+    
+def SCCCallback2(op,i,v,l,s,state):
+    if op==1:
+        if not v in state['v']:
+            state['v'][v]=s;
+            iComponent = len(state['C'])-1;
+            state['C'][iComponent]['n'] += 1;
+    return (1,None);
+    
 class DGraph:
-    #V = dictionary of vertices, indexed by vertex id, each of which is a dictionary of the form:
-    #    {'OE': set of outgoing edges, 'IE': set of incoming edges}
-    
-    #E = dictionary of edges, indexed by ID of origin vertex, of the form: set( destination vertices );
-    
+
     def __init__(self):
         self.V = {};
         self.m = 0;
-        self.E = {};
-
-    def NeighborsOf(self, v):
-        l = list(self.E[v]);
-        l.sort();
-        return l;
-               
-    def DFT(self, s, fn, arg):
         
+    def AddVertex(self, v):
+        if not v in self.V:
+            self.V[v] = {'I': set(), 'O': set()};
+            
+    def NeighborsOf(self,v):
+        if not v in self.V:
+            return None;
+        return list(self.V[v]['O']);            
+        
+    def INeighborsOf(self,v):
+        if not v in self.V:
+            return None;
+        return list(self.V[v]['I']);
+        
+    def OneVertex(self):
+        return None if (len(self.V) == 0) else self.V.keys()[randint(0,len(self.V.keys())-1)];
+        
+    def DFTX(self,s,callback,arg,dir):
         if not s in self.V:
             return 0;
             
-        i = 0;
-        stack = array.array('i');
         visited = {};
+        stack = array.array('i');
+        i = 0;
         
-        fn(0,None,None,None,None,arg);
+        callback(0,None,None,None,None,arg);
         
         stack.append(s);
-        visited[s] = {'L':0, 'R':False, 'i':0};
+        visited[s] = {'L': 0, 'i': 0, 'R': False };
         
         while len(stack) > 0:
         
@@ -51,149 +60,110 @@ class DGraph:
             
             if not visited[v]['R']:
                 visited[v]['R'] = True;
-                (action, result) = fn(1,i,v,l,s,arg);
+                callback(1,i,v,l,s,arg);
                 i += 1;
                 
-                if action == 0:
-                    fn(2,i,None,None,None,arg);
-                    return result;
-                    
-            #look at neighbors of v
-            N = self.NeighborsOf(v);
+            N = self.NeighborsOf(v) if (dir == 0) else self.INeighborsOf(v);
             j = visited[v]['i'];
-            while (j < len(N)):
+            backtrack = True;
+            
+            while j < len(N):
+            
                 u = N[j];
                 j += 1;
                 
                 if not u in visited:
-                    #haven't looked at u yet
-                    stack.append(v); #there may be more unexplored neighbors of v
+                
+                    stack.append(v); #there may be more neighbors of v
                     visited[v]['i'] = j;
                     
-                    stack.append(u); #but first we want to look at neighbors of u
-                    visited[u] = {'L': l+1, 'R': False, 'i':0};
-                    break;  #break out of while loop
+                    stack.append(u); #but we first want to look at u's neighbors
+                    visited[u] = {'L':l+1, 'i':0, 'R':False};
                     
-        (action, result) = fn(2,i,None,None,None,arg);
-        return result if action == 0 else 1;
-        
-    #search for x starting from vertex s.  Can be used to compute distance from s to x;
-    #returns -2 if either s or x are not vertices
-    #returns -1 if vertex x can't be reached from s
-    #returns non-negative distance otherwise
-    def BFS(self, s, x):
-    
-        if not ((s in self.V) and (x in self.V)):
-            return -2;
+                    backtrack = False;
+                    break; #break out of inner while loop
+                    
+            visited[v]['i'] = j;
             
-        if s == x:
-            return 0;
-            
-        state = {'d':-1, 'v':x};
-        return self.BFT(s, BFSCallback, state);
+            if backtrack:
+                callback(3,None,v,l,s,arg);
+                        
+                
+        callback(2,i,None,None,None,arg);
+        return 1;
         
         
-    # Breadth First Traversal, starting with node s.
-    # arguments:
-    #   s : root of Breadth First Traversal
-    #   fn : callback function (see below)
-    #   arg : arguments that will be passed to callback function
-    #
-    # To provide functionality to the traversal function, a callback is provided of the form
-    # (action, result) = callback( op, i, v, l, s, arg )
-    # arguments of callback():
-    #   op: 0 for traversal_start: callback(0, None, None, None, None, arg);
-    #       1 for traversal_item:  callback(1, i, v, l, s, arg);
-    #           i: the ith item visited, starting with 0 (the root)
-    #           v: the current item being visited
-    #           l: the current traversal level (distance from the root)
-    #           s: the starting node s
-    #           arg: application defined arguments
-    #       2 for traversal_end: callback(2, n, None, None, None, arg)
-    #           n: total number of nodes visited
-    #           arg: application defined arguments
-    #
-    #  callback must return:
-    #  when op is 1 (traversal_item) or 2 (traversal_end), callback must return a tuple of the form
-    #  (action, resultValue):   if action = 0, traversal will be stopped and resultValue will be
-    #                           used as return value of BFT()
-    #                           if action = 1, traversal will continue (resultValue is ignored, but must
-    #                           be provided.
-    #  when op is 0 (traversal_start) any value returned by callback will be ignored
-    def BFT(self,s,fn,arg):
+    def DFT(self, s, callback, arg):
+        return self.DFTX(s,callback,arg,0);
+        
+    def RDFT(self, s, callback, arg):
+        return self.DFTX(s,callback,arg,1);
+        
+    def SCC(self):
     
-        if not s in self.V:
-            return 0;
-    
-        visited = {};
+        state = {'v':{}, 'b':[]};
         i = 0;
-        q = array.array('i');
-        
-        fn(0, None, None, None, None, arg);   #callback(traversal_start, None, None, None, None, arg);
-
-        q.append(s);
-        visited[s] = {'P': [s], 'L': 0};
-        
-        while len(q) > 0:
-        
-            v = q.pop(0);
-            p = visited[v]['P'];
-            l = visited[v]['L'];
-            (action, result) = fn(1, i, v, l, s, arg);
-            i += 1;
-            
-            if action == 0:
-                #abort traversal and return 'result'
-                fn(2,i,None,None,None,arg);
-                return result;
-                
-            # now look at v's neighbors
-            N = self.NeighborsOf(v);
-            
-            for n in N:
-                if not n in visited:
-                    visited[n] = {'P': p, 'L':l+1};
-                    visited[n]['P'].append(n);
-                    q.append(n);
-        
-        (action, result) = fn(2, i, None, None, None, arg);
-        return result if action == 0 else 1;
-            
-    def EdgeCount(self):
-        return self.m;
-        
-    def VertexCount(self):
-        return len(self.V);
-        
-    def OneVertex(self):
-        return self.V.keys()[randint(0,len(self.V)-1)];
-        
-    def Load(self,fn):
-        f = open(fn);
-        i = 0;
-        
-        for oneLine in f:
-            values = [int(x) for x in oneLine.split()];
-            
-            o = values[0];
-            
-            if not o in self.V: 
-                self.V[o]={'OE':set(), 'IE':set()};
-                self.E[o]=set();
-                
-            for d in values[1:]:
-            
-                if not d in self.V: 
-                    self.V[d]={'OE':set(), 'IE':set()};
-                    self.E[d]=set();
-                
-                if not (d in self.V[o]['OE']):
-                    self.V[o]['OE'] |= set([d]);
-                    self.V[d]['IE'] |= set([o]);
-                    self.E[o] |= set([d]);
-                    self.m += 1;
-                
+        for s in self.V.keys():
+            if not s in state['v']:
+                self.RDFT(s,SCCCallback1,state);
+                print '[{}] so far, {} nodes seen.'.format(i,len(state['v']));
+                print state['v'];
                 i += 1;
+                
+        del state['v'];
+        print 'Backtracking order:';
+        print state['b'];
+        
+        state['b'].reverse();
+        state['v'] = {};
+        state['C'] = [];
+        
+        for s in state['b']:
+            if not s in state['v']:
+                state['C'].append({'s':s, 'n':0});
+                self.DFT(s,SCCCallback2,state);
+                
+        for i in range(len(state['C'])):
+            print 'Component[{}] s=[{}] has {} nodes.'.format(i,state['C'][i]['s'],state['C'][i]['n']);
             
-        print "Read ", i, "lines: |V|=", self.VertexCount(), " |E|=", self.EdgeCount();
-		
+        del state['v'];
+        L = [state['C'][i]['n'] for i in range(len(state['C']))];
+        L.sort();
+        L.reverse();
+        
+        print '5 Largest components:'
+        print L[:5];
+        
+            
+            
+        
+    def Load(self, fn):
+        with open(fn) as f:
+        
+            for oneLine in f:
+                values = [int(x) for x in oneLine.split()];
+                
+                o = values[0];
+                
+                self.AddVertex(o);
+                
+                for d in values[1:]:
+                
+                    if not d in self.V:
+                        self.AddVertex(d);
+                        
+                    if not d in self.V[o]['O']:
+                        self.V[o]['O'] |= set([d]);
+                        self.V[d]['I'] |= set([o]);
+                        self.m += 1;
+                        
+        for v in self.V.keys():
+            self.V[v]['O'] = list(self.V[v]['O']);
+            self.V[v]['O'].sort();
+            self.V[v]['I'] = list(self.V[v]['I']);
+            self.V[v]['I'].sort();
+                        
+        print 'Loaded [' + fn + '], |E|=[{}], |V|=[{}]'.format(self.m,len(self.V));
+        
+                        
+                    
