@@ -106,13 +106,9 @@ class DGraph:
         for s in self.V.keys():
             if not s in state['v']:
                 self.RDFT(s,SCCCallback1,state);
-                print '[{}] so far, {} nodes seen.'.format(i,len(state['v']));
-                print state['v'];
                 i += 1;
                 
         del state['v'];
-        print 'Backtracking order:';
-        print state['b'];
         
         state['b'].reverse();
         state['v'] = {};
@@ -122,17 +118,25 @@ class DGraph:
             if not s in state['v']:
                 state['C'].append({'s':s, 'n':0});
                 self.DFT(s,SCCCallback2,state);
-                
-        for i in range(len(state['C'])):
-            print 'Component[{}] s=[{}] has {} nodes.'.format(i,state['C'][i]['s'],state['C'][i]['n']);
-            
+        
         del state['v'];
-        L = [state['C'][i]['n'] for i in range(len(state['C']))];
+        
+        f = {};
+        for i in range(len(state['C'])):
+            n = state['C'][i]['n'];
+            if not n in f:
+                f[n] = 0;
+            f[n] += 1;
+
+        L = f.keys();
         L.sort();
         L.reverse();
         
-        print '5 Largest components:'
-        print L[:5];
+        print 'Frequency histogram of component sizes:';
+        print 'Size   \tCount';
+        for i in range(len(L)):
+            print '{}\t{}'.format(L[i], f[L[i]]);
+        
         
             
             
