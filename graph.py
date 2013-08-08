@@ -1,189 +1,146 @@
-import array;
 from random import randint;
 
-def CalcComponentsCallback( op, i, v, l, r, state ):
-    if op == 1:
-        iComponent = len(state['C'])-1;
-        s = set([v]);
-        state['C'][iComponent] |= s;
-        state['v'] |= s;
-    else:
-        pass;
-    return (1,None);
-	
 class Graph:
+
     def __init__(self):
-        self.V = {};
         self.E = {};
-        self.ES = set();
-        self.edgeId = 0;
-        pass;
+        self.m = 0;
+        self.directed = False;
+        self.INFINITY = 1000000;
         
     def AddVertex(self, v):
-        if v in self.V: return 0;
-        self.V[v] = {'V':set(), 'E':set()};
-        return 1;
-        
-    def Load(self, filename ):
-        f = open(filename);
-        fl = list(f);
-        
-        for oneLine in fl:
-            values = [int(x) for x in oneLine.split()];
-            v = values[0];
+        if not v in self.E:
+            self.E[v] = {};
             
-            self.AddVertex(v);
-            
-            if len(values) > 1:
-                #convert to set to eliminate potential duplicates
-                es = set(values[1:]);
-                
-                #and back to list for easy processing
-                el = list(es);
-                
-                for e in el:
-                    if e != v:
-                        self.AddVertex(e);
-                        
-                        edge = set([v,e]);
-                        
-                        if not (edge in self.ES):
-                            self.ES |= set(edge);
-                            eId = self.edgeId;
-                            self.edgeId += 1;
-                            self.E[eId] = edge;
-                            self.V[v]['E'] |= set([eId]);
-                            self.V[e]['E'] |= set([eId]);
-                            self.V[v]['V'] |= set([e]);
-                            self.V[e]['V'] |= set([v]);
-        
-        f.close();
-        
-    def Vertices(self):
-        l = [v for v in self.V.keys()];
-        l.sort();
-        return l;
-        
-    def Edges(self):
-        return {e:self.E[e] for e in self.E.keys()};
-        
-    def DegreeOf(self,v):
-        if v in self.V:
-            return len(self.V[v]['E']);
-        return 0;
-        
-    def AvgDegree(self):
-        return (2*len(self.E))/len(self.V);
-        
     def VertexCount(self):
-        return len(self.V);
-        
-    def EdgeCount(self):
         return len(self.E);
         
+    def EdgeCount(self):
+        return self.m;
+        
     def OneVertex(self):
-        i = randint(0,len(self.V)-1);
-        return self.V.keys()[i];
+        return self.E.keys()[randint(0,len(self.E.keys())-1)];
         
-    def NeighborsOf(self,v):
-        if v in self.V:
-            l = list(self.V[v]['V']);
-            l.sort();
-            return l;
-        return None;
-        
-        
-    def BFT(self, s, callback, arg):
-    
-        if not s in self.V:
-            return 0;
-        
-        q = array.array('i');        
-        visited = {};
-        
-        callback(0,None,None,None,None,arg);  #callback(traverse_start, x,x,x,x,arg)
-            
-        q.append(s);
-        visited[s] = {'L':0, 'P':[s]};
+    def NeighborsOf(self, v):
+        if not v in self.E:
+            return None;
+        return [x for x in self.E[v]];
 
-        i = 0;
-        returnValue = 1;
+    def CostOf(self,s,d):
+        if not ((s in self.E) and (d in self.E)):
+            return None;
+        return self.E[s][d] if (d in self.E[s]) else self.INFINITY;
         
-        while len(q) > 0:
-            v = q.pop(0);
-            p = [x for x in visited[v]['P']];
-            l = visited[v]['L'];
+    def Load(self, filename, directed=False ):
+        
+        with open(filename, 'r') as f:
+        
+            for oneLine in f:
             
-            (op, returnValue) = callback(1, i, v, l, s, arg);
-            i += 1;
-            
-            if (op == 0):
-                callback(2, i, None, None, None, arg);
-                return returnValue;
+                elements = oneLine.split();                
+                s = int(elements[0]);
+                dl = elements[1:];
                 
-            N = self.NeighborsOf(v);
-            
-            for u in N:
-                if not u in visited:
-                    visited[u]={'L': l+1, 'P':p};
-                    visited[u]['P'].append(u);
-                    q.append(u);
-        
-        callback(2,i,None,None,None,arg);     #callback(traverse_end, count, x, x, x)
-        return 1;
-		
-    def Components(self):
-        state = { 'C':{}, 'v':set() };
-        for node in self.V:
-            #if we haven't explored node, then start a BFT rooted on it.
-            if not (node in state['v']):
-                iComponent = len(state['C']);
-                s = set([node]);
-                state['C'][iComponent] = set();
-                state['C'][iComponent] |= s;
-                state['v'] |= s;
-                self.BFT(node, CalcComponentsCallback, state);
-        return state['C'];
-        
-    def DFT(self, s, callback, arg):
-    
-        if not s in self.V:
-            return 0;
-        
-        stack = array.array('i');
-        visited = {};
-        i = 0;
-        
-        callback(0,None,None,None,None,arg);
-        
-        visited[s]={'L':0, 'P':[s], 'R':False};
-        stack.append(s);
-        
-        while len(stack) > 0:
-        
-            v = stack.pop();
-            p = visited[v]['P'];
-            l = visited[v]['L'];
-            
-            if not visited[v]['R']:
-                visited[v]['R'] = True;
-                (o,r) = callback(1,i,v,l,s,arg);
-                i += 1;
-                if o == 0:
-                    callback(2,i,None,None,None,arg);
-                    return r;
-                    
-            for n in self.NeighborsOf(v):
-            
-                if not (n in visited):
+                if not s in self.E:
+                    self.AddVertex(s);
                 
-                    visited[n]={'L':l+1, 'P':[x for x in p], 'R':False};
-                    visited[n]['P'].append(n);
+                for tstr in dl:
+                
+                    if len(tstr.split(',')) == 2:
+                        #tstr is a tuple of the form 'd,c', where:
+                        #d is a destination vertex id, and 
+                        #c the cost associated with the edge
+                        
+                        t = tstr.split(',')
+                        d = int(t[0]);
+                        c = int(t[1]);
+                    else:
+                        d = int(tstr);
+                        c = 1;
+                        
+                    if not d in self.E:
+                        self.AddVertex(d);
+                        
+                    if not d in self.E[s]:
+                        self.m += 1;
+                        
+                    self.E[s][d] = c;
                     
-                    stack.append(v); #there may be some unvisited neighbors of v
-                    stack.append(n); #but we now want to first explore n and its neighbors
-                    break; #break out of for loop to explore n and its neighbors;
-                    
-        callback(2,i,None,None,None,arg);
-        return 1;
+                    if not self.directed:
+                        self.E[d][s] = c;
+                        
+                        if not s in self.E[d]:
+                            self.m += 1;
  
+        return len(self.E);
+
+    def Export(self, filename, format):
+    
+        if format != "net":
+            return None;
+            
+        with open(filename, 'w') as f:
+        
+            f.write('*vertices {}\n'.format(len(self.E)));
+            
+            for v in self.E:
+                f.write('{}\n'.format(v));
+                
+            f.write('*arcs\n');
+            
+            for s in self.E:
+                for d in self.E[s]:
+                    f.write('{}\t{}\t{}\n'.format(s,d,self.CostOf(s,d)));
+                    
+        return 1;
+        
+    def SP(self, v):
+    
+        if not v in self.E:
+            return None;
+        
+        tick = 0;
+        A = {u:{'c':self.INFINITY, 't':None, 'p':None, 'h':None} for u in self.E};
+        A[v] = {'c':0, 't':tick, 'p': None, 'h':[]};
+        
+        X = {};
+        X[v] = tick;
+        tick += 1;
+        
+        while len(X) < len(self.E):
+        
+            nextArc = {'s':None, 'd':None, 'c':self.INFINITY, 'h':None};
+            
+            # for each node for which a shortest path is already known
+            for s in X:
+                
+                As = A[s]['c'];
+                # for each of its neighbors
+                N = self.NeighborsOf(s);
+                for d in N:
+                
+                    # only consider nodes for which a shortes path is still unknown
+                    if not d in X:
+                    
+                        Ad = As + self.CostOf(s,d);
+                        
+                        if Ad < nextArc['c']:
+                        
+                            #found a candidate with distance shorter than the 
+                            #previous best candidate
+                            
+                            nextArc['s'] = s;
+                            nextArc['d'] = d;
+                            nextArc['c'] = Ad;
+                            nextArc['h'] = A[s]['h']+[d];
+                            
+            if nextArc['d'] == None:
+                #no candidates found
+                break;
+                
+            #pull best candidate into the set of nodes for which a shortest path is known, and record its data
+            X[nextArc['d']] = tick;
+            A[nextArc['d']] = {'c': nextArc['c'], 't':tick, 'p':nextArc['s'], 'h':nextArc['h']};
+            tick += 1;
+            
+        return A;
