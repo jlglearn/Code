@@ -20,7 +20,6 @@ def QS(l,r):
         if A[l+1] < A[l]: Swap(l,l+1);
         return n;
     else:
-    
         ip = SelectPivot(l,r);
         if ip != l: Swap(ip,l);
         
@@ -39,3 +38,7 @@ def QS(l,r):
         QS(l,i-1);
         QS(i,r);
         return n;
+
+def QuickSort():
+    global A;
+    QS(0,len(A));
