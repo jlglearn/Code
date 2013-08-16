@@ -4,6 +4,43 @@
 
 typedef enum enumBST_TRAVERSAL_TYPE{ BST_PREORDER, BST_INORDER, BST_POSTORDER } BST_TRAVERSAL_TYPE;
 
+static int BSTKthSmallest(BSTNode *p, int k)
+{
+    ASSERT(p!=(BSTNode *)0,"NULL p in BSTKthSmallest");
+    ASSERT(k<(p->n),"Invalid k in BSTKthSmallest");
+    
+    int nLeft = 0, 
+        nRight = 0;
+    
+    if (p->pLeft != (BSTNode *)0)
+    {
+        nLeft = p->pLeft->n;
+    }
+    
+    if (p->pRight != (BSTNode *)0)
+    {
+        nRight = p->pRight->n;
+    }
+    
+    if ( k < nLeft )
+    {
+        // kth smallest is in left branch
+        return BSTKthSmallest(p->pLeft, k);
+    }
+    
+    k -= nLeft;
+    
+    if ( k == 0 )
+    {
+        // kth smallest is root
+        return p->key;
+    }
+    
+    // kth smallest is in right branch
+    return BSTKthSmallest(p->pRight, k-1);
+}
+
+
 static void BSTScopeR( void fn(BSTNode *), Queue *q )
 {
     BSTNode *p;
@@ -286,7 +323,14 @@ int BST::Insert(int key, void *pData)
     
 }
 
-
+int BST::KthSmallest(int k)
+{
+    ASSERT((pRoot!=(BSTNode *)0),"NULL pRoot in BST::KthSmallest");
+    ASSERT((k>=0), "Invalid k in BST::KthSmallest");
+    ASSERT((k<BSTSize(pRoot)), "Invalid k in BST::KthSmallest (2)");
+    
+    return BSTKthSmallest(pRoot,k);
+}
         
 void BST::Scope(void fn(BSTNode *))
 {
