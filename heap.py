@@ -42,6 +42,35 @@ def HeapPop():
         A.pop();
         MinHeapify(1);    
         return x;
+        
+def HeapInsert(k):
+    global A;
+    A.append(k);
+    i = len(A);
+    while i != 1:
+        j = HeapParent(i);
+        ki = HeapElement(i);
+        kj = HeapElement(j);
+        
+        if ki > kj:
+            # if child (ki) is greater than its parent (kj), heap holds, done.
+            break;
+        elif k1 < kj:
+            # if child (ki) is less than its parent (kj), swap them and continue checking upward
+            HeapSwap(i, j);
+        else:
+            # if child (ki) is equal to its parent (kj), make sure it's on parent's left subtree (by convention)
+            l = HeapLeft(j);
+            
+            if i == HeapLeft(j):
+                #indeed left child, done
+                break;
+            else:
+                #swap left and right children of parent, we are now done
+                HeapSwap(i,l);
+                break;
+        
+        i = j;
 
 def MakeMinHeap():
     global A;
