@@ -24,6 +24,8 @@ public:
     int PostOrder(int fn(BST_TRAVERSAL_OP, int, int, void *));
     void Scope(void fn(BSTNode *));
     int KthSmallest(int);
+    int Size(void);
+    
 private:
     BSTNode *pRoot;
 };

@@ -196,6 +196,11 @@ BST::~BST(void)
 {
 }
 
+int BST::Size(void)
+{
+    return BSTSize(pRoot);
+}
+
 void * BST::Max()
 {
     BSTNode *p = BSTMax(pRoot);
