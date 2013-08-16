@@ -126,24 +126,24 @@ static int BSTTraversal(BSTNode *p, int i, int fn(BST_TRAVERSAL_OP,int,int, void
     
     if (tt == BST_PREORDER)
     {
-        i++;
         r = fn(BST_TRAVERSAL_ITEM,i,p->key,p->pData);
+        i++;
     }
     
     i = BSTTraversal(p->pLeft, i, fn, tt);
     
     if ( tt == BST_INORDER )
     {
-        i++;
         r = fn(BST_TRAVERSAL_ITEM, i, p->key, p->pData);
+        i++;
     }
     
     i = BSTTraversal(p->pRight, i, fn, tt);
     
     if ( tt == BST_POSTORDER )
     {
-        i++;
         r = fn(BST_TRAVERSAL_ITEM, i, p->key, p->pData);
+        i++;
     }
     
     return i;
