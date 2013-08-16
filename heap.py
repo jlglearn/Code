@@ -33,6 +33,13 @@ def MinHeapify(i):
     if (i != m):
         HeapSwap(i,m);
         MinHeapify(m);
+        
+def HeapInsert(x):
+    global A;
+    
+    A.append(x);
+    HeapSwap(1,len(A));
+    MinHeapify(1);
 
 def HeapPop():
     global A;
