@@ -55,7 +55,7 @@ def HeapInsert(k):
         if ki > kj:
             # if child (ki) is greater than its parent (kj), heap holds, done.
             break;
-        elif k1 < kj:
+        elif ki < kj:
             # if child (ki) is less than its parent (kj), swap them and continue checking upward
             HeapSwap(i, j);
         else:
