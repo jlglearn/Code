@@ -1,6 +1,3 @@
-#include <iostream>
-#include <cstdlib>
-
 static int SelectPivot( int A[], int s, int e )
 {
     return s;
@@ -48,32 +45,6 @@ void QuickSort( int A[], int s, int e )
         if (A[s+1] < A[s])
         {
             Swap(A,s,s+1);
-        }
-    }
-}
-
-int main(int argc, char *argv[])
-{
-    int A[32], i, n = sizeof(A)/sizeof(A[0]);
-    
-    for(i = 0; i < n; i++ )
-    {
-        A[i] = (int)((double)10000*rand()/RAND_MAX);
-    }
-    
-    QuickSort(A,0,n);
-    
-    for(i = 0; i < n; i++ )
-    {
-        std::cout << A[i] << " ";
-    }
-    std::cout << "\n";
-    
-    for(i = 0; i < n-1; i++ )
-    {
-        if (A[i+1] < A[i])
-        {
-            std::cout << "Error in index [" << i << "] A[i]=" << A[i] << " A[i+1]=" << A[i+1] << "\n";
         }
     }
 }
