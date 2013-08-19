@@ -42,4 +42,3 @@ def QS(l,r):
 def QuickSort():
     global A;
     QS(0,len(A));
-    
