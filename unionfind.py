@@ -1,11 +1,12 @@
+import sys;
+from random import randint;
+
 class UnionFind:
 
     def __init__(self, n):
-        self.grid = [-1 for i in range((n*n)+1)];
-        self.size = [1 for i in range((n*n))];
-        
+        self.grid = [-1 for i in range(n*n)];
+        self.size = [1 for i in range(n*n)];
         self.dimension = n;
-        self.topSite = len(self.grid)-1;
         
     def getIndex(i,j):
         assert((i>=1) and (i<=self.dimension));
@@ -56,6 +57,56 @@ class UnionFind:
         rootP = self.findRoot(ip,jp);
         rootQ = self.findRoot(iq,jq);
         
-        pass;
+        if self.size[rootP] <= self.size[rootQ]:
+            self.grid[rootP] = rootQ;
+            self.size[rootQ] += self.size[rootP];
+        else:
+            self.grid[rootQ] = rootP;
+            self.size[rootP] += self.size[rootQ];
+
+def createDataset(fname, n, m):
+    print "Creating dataset into file {} (n={}, m={}).\n".format(fname,n,m);
     
+    if m > n: m = n;
+    if m < 0: m = 0;
+    
+    l = [False for i in range(n)];
+    v = [];
+    c = 0;
+    
+    while c < m:
+    
+        x = randint(0,n-1);
+        if l[x]: 
+            #already set this value, skip
+            continue;
+            
+        l[x] = True;
+        v.append(x);
+        c += 1;
         
+    with open(fname, "w") as f:
+        f.write("{}\n".format(n));
+        
+        for w in v:
+            f.write("{}\n".format(w));
+            
+def main():
+
+
+    if (len(sys.argv) >= 5) and (sys.argv[1] == "create"):
+        assert(len(sys.argv)>=4);
+        n = int(sys.argv[2]);
+        m = int(sys.argv[3]);
+        f = sys.argv[4] if (len(sys.argv) > 4) else "dataset.txt";
+        createDataset(f, n, m);
+        return 0;        
+    else:
+        print "Usage {} [create n m filename] where".format(sys.argv[0]);
+        print "   n is array dimension";
+        print "   m is number of unique randomly opened sites";
+        print "   filename is the name of dataset file to be written.";
+        return 1;
+            
+if __name__ == "__main__":
+    main();
