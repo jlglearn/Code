@@ -29,6 +29,7 @@ private:
     void Swap(int i, int j);
     int E(int i);
     void Heapify(int i);
+    void resize(void);
 };
 
 #endif

@@ -40,7 +40,7 @@ int Heap::Insert(int key, void *pData )
     int i, p;
     
     if (heapLength >= heapSize)
-        return 0;
+        resize();
         
     pHeap[heapLength].key = key;
     pHeap[heapLength].pData = pData;
@@ -145,6 +145,22 @@ void Heap::Heapify(int i)
         Swap(i,m);
         Heapify(m);
     }
+}
+
+void Heap::resize()
+{
+    int newSize = heapSize*2;
+    HeapNode *pNew = (HeapNode *) malloc(newSize * sizeof(HeapNode));
+    
+    if (pNew)
+    {
+        memset((void *), 0, newSize*sizeof(HeapNode));
+        memcpy((void *) pNew, (void *) pHeap, heapSize*sizeof(HeapNode));
+        free(pHeap);
+        pHeap = pNew;
+        heapSize = newSize;
+    }
+    
 }
 
 void Heap::Dump()
