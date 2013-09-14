@@ -1,4 +1,5 @@
 #include <memory>
+#include <cstring>
 #include <cstdlib>
 #include <iostream>
 #include "debug.h"
