@@ -154,7 +154,7 @@ void Heap::resize()
     
     if (pNew)
     {
-        memset((void *), 0, newSize*sizeof(HeapNode));
+        memset((void *) pNew, 0, newSize*sizeof(HeapNode));
         memcpy((void *) pNew, (void *) pHeap, heapSize*sizeof(HeapNode));
         free(pHeap);
         pHeap = pNew;
