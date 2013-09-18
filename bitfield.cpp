@@ -8,11 +8,9 @@
 
 BITFIELD::BITFIELD(int nsize)
 {
-    int k;
-    for (k = 2; k < nsize; k *= 2) ;
     size = 0;
     pB = (int *)0;
-    resize(k);
+    resize(nsize);
 }
 
 BITFIELD::~BITFIELD(void)
@@ -47,18 +45,24 @@ void BITFIELD::setBit(int iBit)
 }
 
 
+// newsize is given in number of bits desired in bitfield
 void BITFIELD::resize(int newsize)
 {
-    int aSize = newsize / INTBITS;
-    int *pNew = (int *) malloc(aSize);
-    memset((void *) pNew, 0, aSize);
+    int k;
+    
+    // round up to an even power of 2, with a minimum of 512
+    for (k = 512; k < newsize; k *= 2) ;
+    
+    int byteSize = k / 8;
+    int *pNew = (int *) malloc(byteSize);    
+    memset((void *) pNew, 0, byteSize);
     
     if ( pB )
     {
-        memcpy((void *) pNew, (void *) pB, size / INTBITS);
+        memcpy((void *) pNew, (void *) pB, size/8 );
         free(pB);
     }
     
     pB = pNew;
-    size = newsize;
+    size = k;
 }
