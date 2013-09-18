@@ -1,3 +1,6 @@
+#ifndef _BITFIELD_H_
+#define _BITFIELD_H_
+
 class BITFIELD
 {
     public:
@@ -12,3 +15,5 @@ class BITFIELD
     
     void resize(int newsize);
 };
+
+#endif
