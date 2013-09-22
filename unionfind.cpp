@@ -19,6 +19,7 @@ UNIONFIND::UNIONFIND(void)
     A = (UFNode *)0;
     size = 0;
     nElements = 0;
+    nClusters = 0;
     resize(0);
 }
 
@@ -33,6 +34,7 @@ void UNIONFIND::Init(int n)
         A[i].size = 1;
     }
     nElements = n;
+    nClusters = n;
 }
 
 int UNIONFIND::Find(int k)
@@ -78,7 +80,13 @@ void UNIONFIND::Union(int x, int y)
             A[px].rank++;
         }
     }
+    
+    // by merging, number of clusters decreases by 1
+    nClusters--;
 }
+
+int UNIONFIND::ClusterCount(void)
+{ return nClusters; }
 
 void UNIONFIND::resize(int newsize)
 {
