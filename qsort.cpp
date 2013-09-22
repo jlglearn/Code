@@ -1,5 +1,5 @@
 #include <cstring>
-#include "qsort3.h"
+#include "qsort.h"
 
 static int SelectPivot(int a[], int start, int end)
 {
