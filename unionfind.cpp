@@ -59,6 +59,10 @@ void UNIONFIND::Union(int x, int y)
     int px = Find(x);
     int py = Find(y);
     
+    if (px == py)
+        // already connected
+        return;
+        
     if (A[px].rank < A[py].rank)
     {
         A[px].parent = py;
