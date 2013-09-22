@@ -45,8 +45,11 @@ int UNIONFIND::Find(int k)
     int p = k;
     while (p != A[p].parent)
     {
-        p = A[p].parent;
+        int q = A[p].parent;
+        A[p].parent = A[q].parent;
+        p = q;
     }
+    
     
     return p;
 }
