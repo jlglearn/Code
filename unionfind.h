@@ -26,6 +26,9 @@ class UNIONFIND
     UFNode *A;
     int nElements;
     int nClusters;
+    int size;
+    
+    void resize(int newsize);
 };
 
 #endif

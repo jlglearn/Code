@@ -23,12 +23,17 @@ UNIONFIND::UNIONFIND(void)
     resize(0);
 }
 
+UNIONFIND::~UNIONFIND(void)
+{
+    free(A);
+}
+
 void UNIONFIND::Init(int n)
 {
-    if (n < size) resize(n);
+    if (n > size) resize(n);
     for (int i = 0; i < n; i++)
     {
-        A[i].key = i;
+        A[i].id = i;
         A[i].parent = i;
         A[i].rank = 0;
         A[i].size = 1;

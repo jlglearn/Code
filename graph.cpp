@@ -6,8 +6,20 @@
 
 #include "debug.h"
 #include "bitfield.h"
-#include "qsortx.h"
+#include "unionfind.h"
+#include "qsort.h"
 #include "graph.h"
+
+typedef struct structEdgeWeightIndex {
+    float w;
+    int id;
+} EdgeWeightIndex;
+
+static float getWeight(void *pA, int i)
+{
+    EdgeWeightIndex *pI = (EdgeWeightIndex *)pA;
+    return (float) pI[i].w;
+}
 
 static void * resizeBlock(void *pOld, int oldsize, int newsize, int elementSize)
 {
@@ -67,16 +79,23 @@ int GRAPH::Load(char *filename)
     fLoading = 1;
     for (i = 0; getline(fs, s); i++)
     {
+        int n, src, dst;
+        float w;    
         std::istringstream ss(s);
         
-        int src, dst;
-        float w;
-        
-        ss >> src;
-        ss >> dst;
-        ss >> w;    
-        
-        addEdge(src, dst, w);
+        if (i == 0)
+        {
+            ss >> n;
+        }
+        else
+        {
+            ss >> src;
+            ss >> dst;
+            ss >> w;    
+            // note, src, dst are 1-based, convert to 0-based before adding
+            
+            addEdge(--src, --dst, w);
+        }
     }
     
     QSortX((void *) pN, sizeof(GraphNode), 0, nNodes, getNodeIdFloat );
@@ -91,6 +110,87 @@ int GRAPH::Load(char *filename)
     fLoading = 0;
     return nEdges;
 }
+
+int GRAPH::EdgeCount(void)
+{ return nEdges; }
+
+int GRAPH::NodeCount(void)
+{ return nNodes; }
+
+int GRAPH::MDClustering(int nClusters)
+{
+    int i;
+    UNIONFIND U;
+    
+    // build an index of edge weights (distances), then sort in increasing order
+    EdgeWeightIndex *pIndex = (EdgeWeightIndex *) malloc(sizeof(EdgeWeightIndex) * nEdges);
+    for (i = 0; i < nEdges; i++)
+    {
+        pIndex[i].id = pE[i].id;
+        pIndex[i].w  = pE[i].w;
+    }
+    QSortX(pIndex, sizeof(EdgeWeightIndex), 0, nEdges, getWeight);
+
+    // initialize a UnionFind structure on the nodes
+    U.Init(nNodes);
+    
+    for (i = 0; i < nEdges; i++)
+    {
+        int iEdge = pIndex[i].id;
+        int idN1 = pE[iEdge].idN1;
+        int idN2 = pE[iEdge].idN2;
+        
+        if (U.Find(idN1) == U.Find(idN2))
+        {
+            // the endpoints of this edge already belong to the same cluster, ignore
+            continue;
+        }
+        else
+        {
+            // merge the clusters to which each endpoint belongs
+            
+            U.Union(idN1, idN2);
+        }
+        
+        if (U.ClusterCount() == nClusters)
+        {
+            // down to target number of clusters, done
+            break;
+        }
+    }
+    
+    // NOTE: At end of loop, i is the index of the first unseen edge, or nEdges if
+    // loop ran to completion
+    
+    // having found the components, record the data
+    CD.nClusters = U.ClusterCount();
+    
+    for ( ; i < nEdges; i++ )
+    {
+        int iEdge = pIndex[i].id;
+        int idN1 = pE[iEdge].idN1;
+        int idN2 = pE[iEdge].idN2;
+        
+        if (U.Find(idN1) == U.Find(idN2))
+        {
+            // this edge is contained within a recognized cluster, discard
+            continue;
+        }
+        
+        // the weight (distance) of this edge marks the minimal distance
+        // among disjoint clusters.
+        CD.minW = pE[iEdge].w;
+        break;
+    }
+    
+    free(pIndex);
+    return CD.nClusters;
+            
+}
+
+float GRAPH::MDClusteringSpacing()
+{   return CD.minW;  }
+
 
 int GRAPH::addNode(int idNode)
 {

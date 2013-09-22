@@ -20,8 +20,16 @@ struct structGraphNode {
     std::vector<int> *pvE;
 };  
 
+
+struct structClusterData {
+    int nClusters;
+    float minW;
+};
+
 typedef struct structGraphEdge GraphEdge;
 typedef struct structGraphNode GraphNode;
+typedef struct structIndexNode IndexNode;
+typedef struct structClusterData ClusterData;
 
 class GRAPH
 {
@@ -30,13 +38,19 @@ class GRAPH
     ~GRAPH();
     
     int Load(char *filename);
-    int addNode(int idNode);
-    int addEdge(int idSrc, int idDst, float w);
+    int MDClustering(int nClusters);
+    float MDClusteringSpacing();
+    
+    int EdgeCount(void);
+    int NodeCount(void);
        
     private:
     BITFIELD *pB;
     GraphEdge *pE;
     GraphNode *pN;
+    
+    ClusterData CD;
+    
     int sizeNodes;
     int sizeEdges;
     int nNodes;
@@ -48,6 +62,8 @@ class GRAPH
     void resizeEdges(void);
     int findNode(int idNode);
     void recordEdge(int idNode, int idEdge);
+    int addNode(int idNode);
+    int addEdge(int idSrc, int idDst, float w);    
 };
 
 #endif
