@@ -99,21 +99,24 @@ public class MinHeap<Key extends Comparable<Key>>
     /* heapifyDown(int index): NOTE: index expected to be 1-based */
     private void heapifyDown(int index)
     {
-        int left = heapLeft(index);
-        int right = heapRight(index);
-        int m = index;
-        
-        if ((left <= nElements) && less(heapValue(left), heapValue(index)))
-            m = left;
+        while(heapLeft(index) <= nElements)
+        {
+            int left = heapLeft(index);
+            int right = heapRight(index);
+            int m = index;
             
-        if ((right <= nElements) && less(heapValue(right), heapValue(m)))
-            m = right;
-            
-        if (m == index)
-            return;
-            
-        swap(m, index);
-        heapifyDown(m);
+            if ((left <= nElements) && less(heapValue(left), heapValue(index)))
+                m = left;
+                
+            if ((right <= nElements) && less(heapValue(right), heapValue(m)))
+                m = right;
+                
+            if (m == index)
+                return;
+                
+            swap(m, index);
+            index = m;
+        }    
     }
     
     /* swap(int i, int j): NOTE: indices i, j are expected to be 1-based */
