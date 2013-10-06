@@ -106,6 +106,9 @@ int HEAP::Pop(void)
     return 0;
 }
 
+int HEAP::isEmpty(void)
+{   return nElements == 0; }
+
 
 void HEAP::resize(void)
 {

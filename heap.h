@@ -16,6 +16,7 @@ class HEAP {
     void insertElement(int key, void *pData);
     void *getData(void);
     int Pop(void);
+    int isEmpty(void);
     
     private:
     HeapElement *pE;
