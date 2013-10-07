@@ -36,7 +36,7 @@ int BITFIELD::count(void)
     return nset;
 }
 
-void BITFIELD::setBit(int iBit)
+int BITFIELD::setBit(int iBit)
 {
     int i = iBit / INTBITS;
     int j = iBit % INTBITS;
@@ -52,6 +52,8 @@ void BITFIELD::setBit(int iBit)
         pB[i] |= k;
         nset++;
     }
+    
+    return nset;
 }
 
 

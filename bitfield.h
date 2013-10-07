@@ -7,7 +7,7 @@ class BITFIELD
     BITFIELD(int nsize);
     ~BITFIELD(void);
     int getBit(int iBit);
-    void setBit(int iBit);
+    int setBit(int iBit);
     int count(void);
     
     private:
