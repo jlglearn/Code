@@ -9,6 +9,7 @@
 BITFIELD::BITFIELD(int nsize)
 {
     size = 0;
+    nset = 0;
     pB = (int *)0;
     resize(nsize);
 }
@@ -30,6 +31,11 @@ int BITFIELD::getBit(int iBit)
     return ((pB[i] & k) != 0);
 }
 
+int BITFIELD::count(void)
+{
+    return nset;
+}
+
 void BITFIELD::setBit(int iBit)
 {
     int i = iBit / INTBITS;
@@ -41,7 +47,11 @@ void BITFIELD::setBit(int iBit)
         resize(size * 2);
     }
     
-    pB[i] |= k;
+    if (!(pB[i] & k))
+    {
+        pB[i] |= k;
+        nset++;
+    }
 }
 
 

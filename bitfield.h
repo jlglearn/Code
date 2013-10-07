@@ -8,10 +8,12 @@ class BITFIELD
     ~BITFIELD(void);
     int getBit(int iBit);
     void setBit(int iBit);
+    int count(void);
     
     private:
     int *pB;
     int size;
+    int nset;
     
     void resize(int newsize);
 };
