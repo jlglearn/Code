@@ -4,7 +4,8 @@
 #include "debug.h"
 #include "bitfield.h"
 
-#define INTBITS (8 * sizeof(int))
+static const int INTBITS = 8 * sizeof(int);
+static const int MINBITFIELDSIZE = 64; // minimum size of allocated bitfield (in bits)
 
 BITFIELD::BITFIELD(int nsize)
 {
@@ -62,8 +63,8 @@ void BITFIELD::resize(int newsize)
 {
     int k;
     
-    // round up to an even power of 2, with a minimum of 512
-    for (k = 512; k < newsize; k *= 2) ;
+    // round up to an even power of 2, with a minimum of MINBITFIELDSIZE bits
+    for (k = MINBITFIELDSIZE; k < newsize; k *= 2) ;
     
     int byteSize = k / 8;
     int *pNew = (int *) malloc(byteSize);    
