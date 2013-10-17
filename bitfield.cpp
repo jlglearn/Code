@@ -5,13 +5,13 @@
 #include "bitfield.h"
 
 static const int INTBITS = 8 * sizeof(int);
-static const int MINBITFIELDSIZE = 64; // minimum size of allocated bitfield (in bits)
+static const int MINBITFIELDSIZE = INTBITS; // minimum size of allocated bitfield (in bits)
 
 BITFIELD::BITFIELD(int nsize)
 {
     size = 0;
     nset = 0;
-    pB = (int *)0;
+    pB = (BITWORD *)0;
     resize(nsize);
 }
 
@@ -67,7 +67,7 @@ void BITFIELD::resize(int newsize)
     for (k = MINBITFIELDSIZE; k < newsize; k *= 2) ;
     
     int byteSize = k / 8;
-    int *pNew = (int *) malloc(byteSize);    
+    BITWORD *pNew = (BITWORD *) malloc(byteSize);    
     memset((void *) pNew, 0, byteSize);
     
     if ( pB )

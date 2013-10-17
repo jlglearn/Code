@@ -1,6 +1,8 @@
 #ifndef _BITFIELD_H_
 #define _BITFIELD_H_
 
+typedef unsigned int BITWORD;
+
 class BITFIELD
 {
     public:
@@ -11,7 +13,7 @@ class BITFIELD
     int count(void);
     
     private:
-    int *pB;
+    BITWORD *pB;
     int size;
     int nset;
     
