@@ -1,4 +1,3 @@
-#include <iostream>
 #include "graph.h"
 #include "gscc.h"
 
@@ -24,7 +23,6 @@ static const int UNDEFINED = -1;
 
 static void TSCCExplore(Graph &g, TSCCState *pS, std::vector<VertexID> &S, VertexID idVertex, GSCCResults *pR)
 {
-    std::cout << "TSCCExplore: idVertex=" << idVertex << ", index=" << pS->index << "\n";
     // Set the depth index for v to the smallest unused index
     pS->tss[idVertex].index = pS->index;
     pS->tss[idVertex].low   = pS->index;
@@ -48,14 +46,12 @@ static void TSCCExplore(Graph &g, TSCCState *pS, std::vector<VertexID> &S, Verte
             // idNeighbor is in stack, therefore in current SCC
             pS->tss[idVertex].low = minVal(pS->tss[idVertex].low, pS->tss[idNeighbor].index);
         }
-        std::cout << "TSCCExplore(): idVertex.low [" << idVertex << "]=" << pS->tss[idVertex].low << "\n";        
     }
     delete pN;
     
     // If idVertex is a root node, pop the stack and generate an SCC
     if (pS->tss[idVertex].low == pS->tss[idVertex].index)
     {
-        std::cout << "Found SCC rooted at " << pS->index << "\n";
         // start a new SCC
         VertexIDSet scc;
         VertexID idMember;
@@ -106,7 +102,6 @@ GSCCResults *GraphStronglyConnectedComponents::TarjanSCC(Graph &g)
     {
         if ((*pS).tss[idVertex].index == UNDEFINED)
         {
-            std::cout << "Tarjan(): exploring vertex " << idVertex << "\n";
             TSCCExplore(g, pS, S, idVertex, pR);
         }
     }
