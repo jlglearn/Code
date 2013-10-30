@@ -6,6 +6,7 @@ typedef unsigned int BITWORD;
 class BITFIELD
 {
     public:
+    BITFIELD(void);
     BITFIELD(int nsize);
     ~BITFIELD(void);
     int getBit(int iBit);

@@ -7,6 +7,14 @@
 static const int INTBITS = 8 * sizeof(int);
 static const int MINBITFIELDSIZE = INTBITS; // minimum size of allocated bitfield (in bits)
 
+BITFIELD::BITFIELD(void)
+{
+    size = 0;
+    nset = 0;
+    pB = (BITWORD *)0;
+    resize(0);
+}
+
 BITFIELD::BITFIELD(int nsize)
 {
     size = 0;
