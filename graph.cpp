@@ -1,273 +1,265 @@
-#include <cstdlib>
-#include <cstring>
-#include <string>
+#include <iostream>
 #include <fstream>
 #include <sstream>
-
-#include "debug.h"
-#include "bitfield.h"
-#include "unionfind.h"
-#include "qsort.h"
+#include <string>
+#include <vector>
+#include <cstdlib>
 #include "graph.h"
 
-typedef struct structEdgeWeightIndex {
-    float w;
-    int id;
-} EdgeWeightIndex;
+static inline double getRandom(void) { return (((double) rand()) / RAND_MAX); }
 
-static float getWeight(void *pA, int i)
+Vertex::Vertex(void)
 {
-    EdgeWeightIndex *pI = (EdgeWeightIndex *)pA;
-    return (float) pI[i].w;
+	idVertex = -1;
 }
 
-static void * resizeBlock(void *pOld, int oldsize, int newsize, int elementSize)
+Vertex::~Vertex(void)
 {
-    void *pNew = (void *) malloc( elementSize * newsize );
-    memset(pNew, 0, elementSize * newsize);
-    if ((pOld != (void *)0) && (oldsize != 0))
-    {
-        memcpy(pNew, pOld, elementSize * oldsize);
-        free(pOld);
-    }
-    return pNew;
 }
 
-static float getNodeIdFloat(void *pA, int i)
+Graph::Graph(void)
 {
-    GraphNode *pN = (GraphNode *)pA;
-    return (float) pN[i].id;
+	pV = new VertexSet;
+	if (!pV) throw GRAPH_ERR_OUTOFMEMORY;
+	
+	pE = new EdgeSet;
+	if (!pE) throw GRAPH_ERR_OUTOFMEMORY;
+	
+	fDirected = false;
 }
 
-GRAPH::GRAPH(void)
+
+Graph::~Graph(void)
 {
-    pB = new BITFIELD(DEFNODESSIZE);
-    
-    sizeNodes = 0;
-    sizeEdges = 0;
-    nNodes = 0;
-    nEdges = 0;
-    
-    resizeNodes();
-    resizeEdges();
-    
-    fLoading = 0;
+	if (pE) delete pE;
+	if (pV) delete pV;
 }
 
-GRAPH::~GRAPH(void)
+
+void Graph::Reset(int nVertices)
 {
-    delete(pB);
-    
-    if (pN)
-    {
-        for (int i = 0; i < nNodes; i++)
-        {
-            if (pN[i].pvE) delete(pN[i].pvE);
-        }
-        free(pN);
-    }
-    
-    if (pE) free(pE);
+	if (pV->size() > 0) pV->clear();
+	if (pE->size() > 0) pE->clear();
+	
+	if (nVertices > 0) 
+	{
+		pV->resize(nVertices);
+		
+		if (pV->size() != nVertices)
+			throw GRAPH_ERR_OUTOFMEMORY;
+			
+		for (int i = 0; i < nVertices; i++)
+			(*pV)[i].idVertex = (VertexID) i;
+	}
+	
+	fDirected = false;
 }
 
-int GRAPH::Load(char *filename)
-{
-    std::ifstream fs(filename);
-    std::string s;
-    int i;
-    
-    fLoading = 1;
-    for (i = 0; getline(fs, s); i++)
-    {
-        int n, src, dst;
-        float w;    
-        std::istringstream ss(s);
-        
-        if (i == 0)
-        {
-            ss >> n;
-        }
-        else
-        {
-            ss >> src;
-            ss >> dst;
-            ss >> w;    
-            // note, src, dst are 1-based, convert to 0-based before adding
-            
-            addEdge(--src, --dst, w);
-        }
-    }
-    
-    QSortX((void *) pN, sizeof(GraphNode), 0, nNodes, getNodeIdFloat );
-    
-    // record, for each node, its incident edges
-    for (i = 0; i < nEdges; i++)
-    {
-        recordEdge( pE[i].idN1, pE[i].id );
-        recordEdge( pE[i].idN2, pE[i].id );
-    }
-    
-    fLoading = 0;
-    return nEdges;
+int Graph::V(void)
+{	return pV->size();	}
+
+int Graph::E(void)
+{	return pE->size();	}
+
+void Graph::SetDirected(void)
+{	
+	if (pE->size() > 0) throw GRAPH_ERR_ILLEGALOPERATION;
+	fDirected = true;	
 }
 
-int GRAPH::EdgeCount(void)
-{ return nEdges; }
-
-int GRAPH::NodeCount(void)
-{ return nNodes; }
-
-int GRAPH::MDClustering(int nClusters)
+VertexID Graph::AddVertex(void)
 {
-    int i;
-    UNIONFIND U;
-    
-    // build an index of edge weights (distances), then sort in increasing order
-    EdgeWeightIndex *pIndex = (EdgeWeightIndex *) malloc(sizeof(EdgeWeightIndex) * nEdges);
-    for (i = 0; i < nEdges; i++)
-    {
-        pIndex[i].id = pE[i].id;
-        pIndex[i].w  = pE[i].w;
-    }
-    QSortX(pIndex, sizeof(EdgeWeightIndex), 0, nEdges, getWeight);
-
-    // initialize a UnionFind structure on the nodes
-    U.Init(nNodes);
-    
-    for (i = 0; i < nEdges; i++)
-    {
-        int iEdge = pIndex[i].id;
-        int idN1 = pE[iEdge].idN1;
-        int idN2 = pE[iEdge].idN2;
-        
-        if (U.Find(idN1) == U.Find(idN2))
-        {
-            // the endpoints of this edge already belong to the same cluster, ignore
-            continue;
-        }
-        else
-        {
-            // merge the clusters to which each endpoint belongs
-            
-            U.Union(idN1, idN2);
-        }
-        
-        if (U.ClusterCount() == nClusters)
-        {
-            // down to target number of clusters, done
-            break;
-        }
-    }
-    
-    // NOTE: At end of loop, i is the index of the first unseen edge, or nEdges if
-    // loop ran to completion
-    
-    // having found the components, record the data
-    CD.nClusters = U.ClusterCount();
-    
-    for ( ; i < nEdges; i++ )
-    {
-        int iEdge = pIndex[i].id;
-        int idN1 = pE[iEdge].idN1;
-        int idN2 = pE[iEdge].idN2;
-        
-        if (U.Find(idN1) == U.Find(idN2))
-        {
-            // this edge is contained within a recognized cluster, discard
-            continue;
-        }
-        
-        // the weight (distance) of this edge marks the minimal distance
-        // among disjoint clusters.
-        CD.minW = pE[iEdge].w;
-        break;
-    }
-    
-    free(pIndex);
-    return CD.nClusters;
-            
+	VertexID idVertex = (VertexID) pV->size();
+	Vertex v;
+	v.idVertex = idVertex;
+	pV->push_back(v);
+	return idVertex;
 }
 
-float GRAPH::MDClusteringSpacing()
-{   return CD.minW;  }
 
+void Graph::AddEdge(VertexID idSrc, VertexID idDst)
+{	AddEdge(idSrc, idDst, 1.0);	}
 
-int GRAPH::addNode(int idNode)
+void Graph::AddEdge(VertexID idSrc, VertexID idDst, double w)
 {
-    ASSERT(!pB->getBit(idNode), "GRAPH::addNode: node already added");
-    
-    if (nNodes >= sizeNodes)
-        resizeNodes();
-        
-    pN[nNodes].id = idNode;
-    pN[nNodes].pvE = new std::vector<int>(DEFNEIGHBORS);
-    pB->setBit(idNode);
-    nNodes++;
+	CheckVertex(idSrc);
+	CheckVertex(idDst);
+	
+	Edge e;
+	e.idEdge = pE->size();
+	e.idSrc  = idSrc;
+	e.idDst  = idDst;
+	e.w      = w;
+	pE->push_back(e);
+	
+	(*pV)[idSrc].OE.push_back(e.idEdge);
+	(*pV)[idDst].IE.push_back(e.idEdge);
+	
+	if (!fDirected)
+	{
+		(*pV)[idSrc].IE.push_back(e.idEdge);
+		(*pV)[idDst].OE.push_back(e.idEdge);
+	}
+
 }
 
-int GRAPH::addEdge(int idSrc, int idDst, float w)
-{   
-    if (!pB->getBit(idSrc))
-        addNode(idSrc);
-        
-    if (!pB->getBit(idDst))
-        addNode(idDst);
-        
-    if (nEdges >= sizeEdges)
-        resizeEdges();
-        
-    pE[nEdges].id = nEdges;
-    pE[nEdges].idN1 = ((idSrc < idDst) ? idSrc : idDst);
-    pE[nEdges].idN2 = ((idSrc < idDst) ? idDst : idSrc);
-    pE[nEdges].w = w;
-    
-    if (!fLoading)
-    {
-        // if reading from file (loading), this will be done in bulk at the end of load
-        recordEdge(idSrc, nEdges);
-        recordEdge(idDst, nEdges);
-    }
-    
-    nEdges++;
+
+void Graph::Load(char *filename)
+{
+	std::ifstream f(filename);
+	std::string s;
+	int nVertices;
+	
+	for (int i = 0; getline(f, s); i++)
+	{
+		std::istringstream ss(s);
+		
+		if (i == 0)
+		{
+			ss >> nVertices;
+			if (nVertices >= 0) Reset(nVertices);
+		}
+		else
+		{
+			VertexID idSrc;
+			VertexID idDst;
+			double w;
+			
+			ss >> idSrc;
+			ss >> idDst;
+			ss >> w;
+			
+			AddEdge(idSrc, idDst, w);
+		}
+	}
 }
 
-void GRAPH::resizeNodes(void)
+NeighborSet *Graph::Neighbors(VertexID idVertex)
 {
-    int newsize = ((sizeNodes == 0) ? DEFNODESSIZE : sizeNodes * 2);
-    pN = (GraphNode *) resizeBlock((void *)pN, sizeNodes, newsize, sizeof(GraphNode));
-    sizeNodes = newsize;
+	CheckVertex(idVertex);
+	int nNeighbors = (*pV)[idVertex].OE.size();
+	
+	NeighborSet *pN = new NeighborSet(nNeighbors);
+	
+	for (int iNeighbor = 0; iNeighbor < nNeighbors; iNeighbor++)
+	{
+		EdgeID idEdge = (*pV)[idVertex].OE[iNeighbor];
+		VertexID idNeighbor = (*pE)[idEdge].idDst;
+		
+		if ((!fDirected) && (idNeighbor == idVertex))
+			idNeighbor = (*pE)[idEdge].idSrc;
+			
+		double w = (*pE)[idEdge].w;
+		
+		(*pN)[iNeighbor].idNeighbor = idNeighbor;
+		(*pN)[iNeighbor].w = w;
+	}
+	
+	return pN;
 }
 
-void GRAPH::resizeEdges(void)
+
+inline void Graph::CheckVertex(VertexID idVertex)
 {
-    int newsize = ((sizeEdges == 0) ? DEFEDGESSIZE : sizeEdges * 2);
-    pE = (GraphEdge *) resizeBlock((void *)pE, sizeEdges, newsize, sizeof(GraphEdge));
-    sizeEdges = newsize;
+	if ((idVertex < 0) || (idVertex >= V()))
+		throw GRAPH_ERR_INDEXOUTOFRANGE;
 }
 
-void GRAPH::recordEdge(int idNode, int idEdge)
+int Graph::BFT(VertexID idSrc, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID))
+{	return Traversal(GRAPH_TRAVERSAL_BFT, idSrc, fn);	}
+
+int Graph::DFT(VertexID idSrc, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID))
+{	return Traversal(GRAPH_TRAVERSAL_DFT, idSrc, fn);	}
+
+void Graph::GenerateRandom(int N, bool directed, double p, double minLength, double maxLength)
 {
-    int k = findNode(idNode);
-    ASSERT(k != -1, "GRAPH::recordEdge: node not found.");
-    pN[k].pvE->push_back(idEdge);
+	if (N < 0) throw GRAPH_ERR_BADGRAPHSIZE;
+	
+	if (minLength < 0) minLength = 0;
+	if (maxLength < minLength) maxLength = minLength;
+	
+	Reset(N);
+	
+	if (directed) SetDirected();
+	
+	double lRange = maxLength - minLength;
+	
+	for (int i = 0; i < N - 1; i++)
+	{
+		for (int j = i + 1; j < N; j++)
+		{
+			if (getRandom() < p)
+			{
+				AddEdge(i, j, lRange * getRandom());
+			}
+		}
+	}
 }
 
-int GRAPH::findNode(int idNode)
+int Graph::Traversal(GraphTraversalType gtt, VertexID idSrc, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID))
 {
-    if (!pB->getBit(idNode))
-    {
-        // idNode not in node list
-        return -1;
-    }
-    
-    // assume node array is dense (that is nNodes ~ maxNodeId)
-    int k = ((idNode >= nNodes) ? (nNodes - 1) : idNode);
-    
-    while ( pN[k].id > idNode ) 
-    {
-        k--;
-    }
-    
-    ASSERT( pN[k].id == idNode, "GRAPH::findNode: pN[k].id != idNode");
-    return k;    
+	if ((gtt != GRAPH_TRAVERSAL_BFT) && (gtt != GRAPH_TRAVERSAL_DFT))
+		throw GRAPH_ERR_INVALIDTRAVERSALTYPE;
+		
+	CheckVertex(idSrc);
+	
+	GraphCallbackAction action = GRAPH_CALLBACK_CONTINUE;
+	std::vector<int> vLevel(V(), -1);
+	std::deque<VertexID> Q;
+	
+	if (fn) action = fn(GRAPH_TRAVERSAL_START, 0, 0, idSrc, 0);
+	
+	if (action == GRAPH_CALLBACK_STOP)
+		return 0;
+		
+	vLevel[idSrc] = 0;
+	Q.push_back(idSrc);
+	
+	int iLevel = 0;
+	int iVertex = 0;
+	int maxLevel = 0;
+		
+	while (!Q.empty())
+	{
+		VertexID idVertex;
+		
+		if (gtt == GRAPH_TRAVERSAL_BFT)
+		{
+			idVertex = Q.front();
+			Q.pop_front();
+		}
+		else
+		{
+			idVertex = Q.back();
+			Q.pop_back();
+		}
+		
+		iLevel = vLevel[idVertex];
+		if (iLevel > maxLevel) maxLevel = iLevel;
+		
+		if (fn) action = fn(GRAPH_TRAVERSAL_VISIT, iVertex, iLevel, idSrc, idVertex);
+		iVertex++;
+		
+		if (action == GRAPH_CALLBACK_STOP)
+			return iVertex;
+			
+		NeighborSet *pN = Neighbors(idVertex);
+		for (int i = 0; i < pN->size(); i++)
+		{
+			VertexID idNeighbor = (*pN)[i].idNeighbor;
+			
+			if (vLevel[idNeighbor] != -1)
+			{
+				// already processed this vertex, skip
+				continue;
+			}
+			
+			vLevel[idNeighbor] = iLevel + 1;
+			Q.push_back(idNeighbor);
+		}
+		delete pN;
+	}
+	
+	if (fn) fn(GRAPH_TRAVERSAL_END, iVertex, maxLevel, idSrc, 0);
+	return iVertex;
 }
