@@ -36,6 +36,7 @@ class GraphStronglyConnectedComponents {
     
     private:    
     GSCCResults *TarjanSCC(Graph &g);    
+    GSCCResults *UndirectedSCC(Graph &g);
 };
 
 #endif 

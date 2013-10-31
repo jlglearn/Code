@@ -88,7 +88,57 @@ GraphStronglyConnectedComponents::~GraphStronglyConnectedComponents(void)
 {}
 
 GSCCResults *GraphStronglyConnectedComponents::Compute(Graph &g)
-{   return TarjanSCC(g); }
+{   
+    if (!g.isDirected())
+        return UndirectedSCC(g);
+    else
+        return TarjanSCC(g); 
+}
+
+static GraphCallbackAction fnStoreSCC(GraphCallbackOp op, int i, int iLevel, VertexID idSrc, VertexID idDst, void *pArgs)
+{
+    if (op == GRAPH_TRAVERSAL_VISIT)
+    {
+        std::vector<VertexID> *p = (std::vector<VertexID> *)pArgs;
+        (*p)[idDst] = idSrc;
+    }
+    return GRAPH_CALLBACK_CONTINUE;
+}
+
+GSCCResults *GraphStronglyConnectedComponents::UndirectedSCC(Graph &g)
+{
+    // for undirected graphs computing SCC is easy through a simple BFT
+    
+    // a simple vector to record which component a given vertex belongs to
+    std::vector<VertexID> *pvC = new std::vector<VertexID>(g.V(), UNDEFINED);
+    
+    // a mapping from root of scc to index of scc
+    std::vector<int> *pidC = new std::vector<int>(g.V(), UNDEFINED);
+    
+    int iSCC = 0;
+    for (VertexID idSrc = 0; idSrc < g.V(); idSrc++)
+    {
+        if ((*pvC)[idSrc] != UNDEFINED) continue; 
+        
+        // start new component
+        (*pidC)[idSrc] = iSCC++;                // remember index of this component
+        g.BFT(idSrc, fnStoreSCC, (void *)pvC);  // compute it
+    }
+    
+    GSCCResults *pR = new GSCCResults;
+    pR->vSCC.resize(iSCC);                      // create vectors for each component
+    
+    for (VertexID idVertex = 0; idVertex < g.V(); idVertex++)
+    {
+        VertexID idComponent = (*pvC)[idVertex];
+        int iComponent = (*pidC)[idComponent];
+        pR->vSCC[iComponent].push_back(idVertex);
+    }
+    
+    delete pvC;
+    delete pidC;
+    return pR;    
+}
 
 GSCCResults *GraphStronglyConnectedComponents::TarjanSCC(Graph &g)
 {

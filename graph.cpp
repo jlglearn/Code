@@ -158,6 +158,8 @@ NeighborSet *Graph::Neighbors(VertexID idVertex)
 	return pN;
 }
 
+bool Graph::isDirected(void)
+{   return fDirected;   }
 
 inline void Graph::CheckVertex(VertexID idVertex)
 {
@@ -165,11 +167,11 @@ inline void Graph::CheckVertex(VertexID idVertex)
 		throw GRAPH_ERR_INDEXOUTOFRANGE;
 }
 
-int Graph::BFT(VertexID idSrc, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID))
-{	return Traversal(GRAPH_TRAVERSAL_BFT, idSrc, fn);	}
+int Graph::BFT(VertexID idSrc, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID, void *), void *pArgs)
+{	return Traversal(GRAPH_TRAVERSAL_BFT, idSrc, fn, pArgs);	}
 
-int Graph::DFT(VertexID idSrc, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID))
-{	return Traversal(GRAPH_TRAVERSAL_DFT, idSrc, fn);	}
+int Graph::DFT(VertexID idSrc, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID, void *), void *pArgs)
+{	return Traversal(GRAPH_TRAVERSAL_DFT, idSrc, fn, pArgs);	}
 
 void Graph::GenerateRandom(int N, bool directed, double p, double minLength, double maxLength)
 {
@@ -196,7 +198,7 @@ void Graph::GenerateRandom(int N, bool directed, double p, double minLength, dou
 	}
 }
 
-int Graph::Traversal(GraphTraversalType gtt, VertexID idSrc, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID))
+int Graph::Traversal(GraphTraversalType gtt, VertexID idSrc, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID, void *), void *pArgs)
 {
 	if ((gtt != GRAPH_TRAVERSAL_BFT) && (gtt != GRAPH_TRAVERSAL_DFT))
 		throw GRAPH_ERR_INVALIDTRAVERSALTYPE;
@@ -207,7 +209,7 @@ int Graph::Traversal(GraphTraversalType gtt, VertexID idSrc, GraphCallbackAction
 	std::vector<int> vLevel(V(), -1);
 	std::deque<VertexID> Q;
 	
-	if (fn) action = fn(GRAPH_TRAVERSAL_START, 0, 0, idSrc, 0);
+	if (fn) action = fn(GRAPH_TRAVERSAL_START, 0, 0, idSrc, 0, pArgs);
 	
 	if (action == GRAPH_CALLBACK_STOP)
 		return 0;
@@ -237,7 +239,7 @@ int Graph::Traversal(GraphTraversalType gtt, VertexID idSrc, GraphCallbackAction
 		iLevel = vLevel[idVertex];
 		if (iLevel > maxLevel) maxLevel = iLevel;
 		
-		if (fn) action = fn(GRAPH_TRAVERSAL_VISIT, iVertex, iLevel, idSrc, idVertex);
+		if (fn) action = fn(GRAPH_TRAVERSAL_VISIT, iVertex, iLevel, idSrc, idVertex, pArgs);
 		iVertex++;
 		
 		if (action == GRAPH_CALLBACK_STOP)
@@ -260,6 +262,6 @@ int Graph::Traversal(GraphTraversalType gtt, VertexID idSrc, GraphCallbackAction
 		delete pN;
 	}
 	
-	if (fn) fn(GRAPH_TRAVERSAL_END, iVertex, maxLevel, idSrc, 0);
+	if (fn) fn(GRAPH_TRAVERSAL_END, iVertex, maxLevel, idSrc, 0, pArgs);
 	return iVertex;
 }

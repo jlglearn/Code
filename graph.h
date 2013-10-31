@@ -71,6 +71,7 @@ class Graph {
 	void Reset(int nVertices);
 	void Load(char *filename);
 	void SetDirected(void);
+    bool isDirected(void);
 	
 	void AddEdge(VertexID idSrc, VertexID idDst);
 	void AddEdge(VertexID idSrc, VertexID idDst, double w);	
@@ -80,8 +81,8 @@ class Graph {
 	int V(void);
 	int E(void);
 	
-	int BFT(VertexID idVertex, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID) = 0);
-	int DFT(VertexID idVertex, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID) = 0);
+	int BFT(VertexID idVertex, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID, void *) = 0, void *pArgs = 0);
+	int DFT(VertexID idVertex, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID, void *) = 0, void *pArgs = 0);
 	
 	void GenerateRandom(int N, bool directed, double p, double minLength, double maxLength);
 	
@@ -92,7 +93,7 @@ class Graph {
 	bool fDirected;
 	
 	inline void CheckVertex(VertexID idVertex);
-	int Traversal(GraphTraversalType gtt, VertexID idVertex, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID));
+	int Traversal(GraphTraversalType gtt, VertexID idVertex, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID, void *), void *pArgs);
 };
 
 
