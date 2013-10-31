@@ -7,19 +7,22 @@
 static const int INTBITS = 8 * sizeof(int);
 static const int MINBITFIELDSIZE = INTBITS; // minimum size of allocated bitfield (in bits)
 
-BITFIELD::BITFIELD(void)
+void BITFIELD::clear(void)
 {
     size = 0;
     nset = 0;
     pB = (BITWORD *)0;
+}
+
+BITFIELD::BITFIELD(void)
+{
+    clear();
     resize(0);
 }
 
 BITFIELD::BITFIELD(int nsize)
 {
-    size = 0;
-    nset = 0;
-    pB = (BITWORD *)0;
+    clear();
     resize(nsize);
 }
 
@@ -38,6 +41,17 @@ int BITFIELD::getBit(int iBit)
     int k = 1 << j;
     
     return ((pB[i] & k) != 0);
+}
+
+void BITFIELD::clearBit(int iBit)
+{
+    if (iBit < (size * INTBITS))
+    {
+        int i = iBit / INTBITS;
+        int j = iBit % INTBITS;
+        int k = ~(1 << j);
+        pB[i] &= k;
+    }
 }
 
 int BITFIELD::count(void)
@@ -65,6 +79,15 @@ int BITFIELD::setBit(int iBit)
     return nset;
 }
 
+void BITFIELD::Reset(int newsize)
+{
+    if (nset > 0)
+    {
+        delete pB;
+        clear();
+    }
+    resize(newsize);
+}
 
 // newsize is given in number of bits desired in bitfield
 void BITFIELD::resize(int newsize)

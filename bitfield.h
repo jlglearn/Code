@@ -11,13 +11,16 @@ class BITFIELD
     ~BITFIELD(void);
     int getBit(int iBit);
     int setBit(int iBit);
+    void clearBit(int iBit);
     int count(void);
+    void Reset(int newsize);
     
     private:
     BITWORD *pB;
     int size;
     int nset;
     
+    void clear(void);
     void resize(int newsize);
 };
 
