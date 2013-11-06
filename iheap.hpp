@@ -39,6 +39,9 @@ class IndexedHeap {
     void getMin(int &indexRef, NUMERICWEIGHT &wRef);  
     void getMin(int &indexRef, NUMERICWEIGHT &wRef, DATATYPE &dRef); 
     
+    bool find(int index, NUMERICWEIGHT &wRef);
+    bool find(int index, NUMERICWEIGHT &wRef, DATATYPE &dRef); 
+    
     void print(void);
     
     private:
@@ -254,6 +257,28 @@ void IndexedHeap<NUMERICWEIGHT, DATATYPE>::getMin(int &indexRef, NUMERICWEIGHT &
     wRef = hn.w;
     dRef = hn.data;
 }
+
+template <class NUMERICWEIGHT, class DATATYPE>
+bool IndexedHeap<NUMERICWEIGHT, DATATYPE>::find(int clientIndex, NUMERICWEIGHT &wRef)
+{
+	DATATYPE d;
+	return find(clientIndex, wRef, d);
+}
+
+template <class NUMERICWEIGHT, class DATATYPE>
+bool IndexedHeap<NUMERICWEIGHT, DATATYPE>::find(int clientIndex, NUMERICWEIGHT &wRef, DATATYPE &dRef)
+{
+	if ((clientIndex < 0) || (clientIndex > maxIndex)) throw INDEXEDHEAP_ERR_INVALIDINDEX;
+	
+	int index = vI[clientIndex];
+	
+	if (index == 0) return false;
+	
+	wRef = vH[heapIndex(index)].w;
+	dRef = vH[heapIndex(index)].data;
+	return true;
+}
+
 
 template <class NUMERICWEIGHT, class DATATYPE>
 void IndexedHeap<NUMERICWEIGHT, DATATYPE>::print(void)
