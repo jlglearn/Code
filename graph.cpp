@@ -90,6 +90,10 @@ VertexID Graph::AddVertex(void)
 	return idVertex;                                // return ID of newly created vertex
 }
 
+// returns a randomly selected vertex
+VertexID Graph::AnyVertex(void)
+{   return (VertexID) (pV->size() * getRandom());   }
+
 // add an edge from vertex idSrc to vertex idDst.  Assumes a path length of 1.0
 void Graph::AddEdge(VertexID idSrc, VertexID idDst)
 {	AddEdge(idSrc, idDst, 1.0);	}
@@ -158,6 +162,21 @@ void Graph::Load(char *filename)
 	}
 }
 
+// writes graph to a file with the given filename.  It writes the file in the same format
+// as expected in Load() above
+void Graph::Write(char *filename)
+{
+    std::ofstream f(filename);
+    
+    f << pV->size() << "\n";
+    for (int iEdge = 0; iEdge < pE->size(); iEdge++)
+    {
+        f << (*pE)[iEdge].idSrc << " "
+          << (*pE)[iEdge].idDst << " "
+          << (*pE)[iEdge].w << "\n";
+    }
+    f.close();
+}
 
 // return set of vertices adjacent (directly connected to) idVertex
 NeighborSet *Graph::Neighbors(VertexID idVertex)

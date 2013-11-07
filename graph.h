@@ -85,12 +85,14 @@ class Graph {
                                                 // graph with nVertices vertices
                                                 
 	void Load(char *filename);                  // read graph from file
+    void Write(char *filename);                 // write graph to file
 	void SetDirected(void);                     // mark graph as directed
     bool isDirected(void);                      // return whether graph is directed
 	
 	void AddEdge(VertexID idSrc, VertexID idDst);   // add an edge from idSrc to idDst, assumes w = 1.0
 	void AddEdge(VertexID idSrc, VertexID idDst, double w);	    // add an edge from idSrc to idDst with given weight
 	VertexID AddVertex(void);	                    // add a vertex to the graph
+    VertexID AnyVertex(void);                       // return id of a randomly selected vertex
 	NeighborSet *Neighbors(VertexID idVertex);      // return the set of vertices adjacent to vertex idVertex
 		
 	int V(void);                                // return number of vertices
