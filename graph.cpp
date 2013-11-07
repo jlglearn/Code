@@ -103,6 +103,14 @@ void Graph::AddEdge(VertexID idSrc, VertexID idDst, double w)
 
 }
 
+bool Graph::GetEdge(EdgeID idEdge, Edge &e)
+{
+    if ((idEdge < 0) || (idEdge >= E()))
+        return false;
+        
+    e = (*pE)[idEdge];
+    return true;
+}
 
 void Graph::Load(char *filename)
 {

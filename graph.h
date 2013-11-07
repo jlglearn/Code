@@ -43,7 +43,7 @@ typedef std::vector<Vertex> VertexSet;
 class Edge {
 	friend class Graph;
 	
-	private:
+	public:
 	EdgeID   idEdge;
 	VertexID idSrc;
 	VertexID idDst;
@@ -77,6 +77,7 @@ class Graph {
 	void AddEdge(VertexID idSrc, VertexID idDst, double w);	
 	VertexID AddVertex(void);	
 	NeighborSet *Neighbors(VertexID idVertex);
+    bool GetEdge(EdgeID idEdge, Edge &e);
 		
 	int V(void);
 	int E(void);
