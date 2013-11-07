@@ -74,7 +74,7 @@ IndexedHeap<NUMERICWEIGHT, DATATYPE>::IndexedHeap(int expectedSize)
     maxIndex = 0;
     if (expectedSize > 0)
     {
-        vI.reserve(expectedSize);
+        vI.resize(expectedSize, 0);
         maxIndex = expectedSize - 1;
     }
 }
@@ -95,7 +95,10 @@ void IndexedHeap<NUMERICWEIGHT, DATATYPE>::addItem(int clientIndex, NUMERICWEIGH
 template <class NUMERICWEIGHT, class DATATYPE>
 void IndexedHeap<NUMERICWEIGHT, DATATYPE>::addItem(int clientIndex, NUMERICWEIGHT w, DATATYPE d)
 {    
-    if (clientIndex < 0) throw INDEXEDHEAP_ERR_INVALIDINDEX;
+    if (clientIndex < 0) 
+    {
+        throw INDEXEDHEAP_ERR_INVALIDINDEX;
+    }
     
     if (clientIndex > maxIndex)
     {
