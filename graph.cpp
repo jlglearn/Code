@@ -90,9 +90,13 @@ VertexID Graph::AddVertex(void)
 	return idVertex;                                // return ID of newly created vertex
 }
 
-// returns a randomly selected vertex
+// returns a randomly selected vertex (id)
 VertexID Graph::AnyVertex(void)
 {   return (VertexID) (pV->size() * getRandom());   }
+
+// returns a randomly selected edge (id)
+EdgeID Graph::AnyVertex(void)
+{   return (EdgeID) (pE->size() * getRandom()); }
 
 // add an edge from vertex idSrc to vertex idDst.  Assumes a path length of 1.0
 void Graph::AddEdge(VertexID idSrc, VertexID idDst)

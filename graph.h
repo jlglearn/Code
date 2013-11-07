@@ -93,6 +93,7 @@ class Graph {
 	void AddEdge(VertexID idSrc, VertexID idDst, double w);	    // add an edge from idSrc to idDst with given weight
 	VertexID AddVertex(void);	                    // add a vertex to the graph
     VertexID AnyVertex(void);                       // return id of a randomly selected vertex
+    EdgeID   AnyEdge(void);                         // return id of a randomly selected edge
 	NeighborSet *Neighbors(VertexID idVertex);      // return the set of vertices adjacent to vertex idVertex
 		
 	int V(void);                                // return number of vertices
