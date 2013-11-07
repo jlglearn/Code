@@ -14,6 +14,7 @@ class GraphMinimalSpanningTree {
     GraphMinimalSpanningTree(void);
     ~GraphMinimalSpanningTree(void);
     GMSTResults *Prim(Graph &g);
+    GMSTResults *Kruskal(Graph &g);
 };
 
 

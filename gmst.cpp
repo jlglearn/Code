@@ -2,6 +2,7 @@
 #include "graph.h"
 #include "gmst.h"
 #include "iheap.hpp"
+#include "unionfind.h"
 
 GraphMinimalSpanningTree::GraphMinimalSpanningTree(void)
 {
@@ -79,6 +80,58 @@ GMSTResults * GraphMinimalSpanningTree::Prim(Graph &g)
         }
         delete pN;
         
+    }
+    
+    return pR;
+}
+
+
+GMSTResults * GraphMinimalSpanningTree::Kruskal(Graph &g)
+{
+    const int nVertices = g.V();                    // number of vertices
+    const int nEdges = g.E();                       // number of edges
+    
+    IndexedHeap<double> H(nVertices);               // heap for easy retrieval of least cost edges
+    UnionFind U(nVertices);                         // union-find for easy cycle detection
+    
+    // initialize the heap to contain all edges in the graph
+    for (int i = 0; i < nEdges; i++)
+    {
+        Edge e;        
+        g.GetEdge(i, e);                            // retrieve this edge from graph
+        H.addItem(i, e.w);                          // add its id and length to heap
+    }
+    
+    GMSTResults *pR = new GMSTResults;              // allocate memory for resulting MST
+    
+    // iterate until we find a complete MST or no more edges to explore
+    while (!H.empty())
+    {
+        EdgeID idEdge;
+        double w;
+        Edge   e;
+        
+        H.getMin(idEdge, w);                        // retrieve least-cost edge
+        g.GetEdge(idEdge, e);                       // retrieve edge from graph
+        
+        if (U.Find(e.idSrc) == U.Find(e.idDst))
+        {
+            // there is already a path connecting this edge's endpoints
+            // the edge would create a cycle.  toss away.
+            continue;
+        }
+        
+        // add this edge to resulting MST
+        pR->E.push_back(idEdge);
+        
+        // remember that endpoints now connected in MST
+        U.Join(e.idSrc, e.idDst);
+        
+        if (U.Size(e.idSrc) == nVertices)
+        {
+            // terminate early if we have reached all possible vertices
+            break;
+        }
     }
     
     return pR;

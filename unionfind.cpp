@@ -1,120 +1,74 @@
-#include <string>
-#include <cstring>
-#include <cstdlib>
-#include "debug.h"
 #include "unionfind.h"
 
-#define UFDEFSIZE 512
-
-UNIONFIND::UNIONFIND(int newsize)
+UnionFind::UnionFind(int size)
 {
-    A = (UFNode *)0;
-    size = 0;
-    nElements = 0;
-    resize(newsize);
-}
-
-UNIONFIND::UNIONFIND(void)
-{
-    A = (UFNode *)0;
-    size = 0;
-    nElements = 0;
-    nClusters = 0;
-    resize(0);
-}
-
-UNIONFIND::~UNIONFIND(void)
-{
-    free(A);
-}
-
-void UNIONFIND::Init(int n)
-{
-    if (n > size) resize(n);
-    for (int i = 0; i < n; i++)
+    if (size < 0) throw UNIONFIND_ERR_INVALIDSIZE;
+    
+    items.resize(size);         // make room
+    
+    for (int i = 0; i < items.size(); i++)
     {
-        A[i].id = i;
-        A[i].parent = i;
-        A[i].rank = 0;
-        A[i].size = 1;
+        items[i].parent = i;    // initialize each element's parent to point to itself
+        items[i].size = 1;      // initialize each element's size to 1 (itself)
     }
-    nElements = n;
-    nClusters = n;
 }
 
-int UNIONFIND::Find(int k)
+UnionFind::~UnionFind(void)
 {
-    ASSERT((k >= 0) && (k < nElements), "UNIONFIND::Find() k out of range.");
-    
-    if ((k < 0) || (k >= nElements))
-        return -1;
-    
-    int p = k;
-    while (p != A[p].parent)
-    {
-        int q = A[p].parent;
-        A[p].parent = A[q].parent;
-        p = q;
-    }
-    
-    
-    return p;
 }
 
-void UNIONFIND::Union(int x, int y)
+// join i to j
+void UnionFind::Join(int i, int j)
 {
-    int px = Find(x);
-    int py = Find(y);
-    
-    if (px == py)
-        // already connected
-        return;
+    if ((i < 0) || (i >= items.size()) || (j < 0) || (j >= items.size()))
+        throw UNIONFIND_ERR_INDEXOUTOFRANGE;
         
-    if (A[px].rank < A[py].rank)
-    {
-        A[px].parent = py;
-        A[py].size += A[px].size;
-    }
-    else
-    {
-        A[py].parent = px;
-        A[px].size += A[py].size;
-        
-        if (A[px].rank == A[py].rank)
+    int pi = Find(i);           // retrieve root of i's component
+    int pj = Find(j);           // retrieve root of j's component
+    
+    // do nothing if already joined
+    if (pi != pj)
+    {        
+        // make smaller component point to root of larger component
+        if (items[pi].size <= items[pj].size)
         {
-            A[px].rank++;
+            items[pi].parent = pj;
+            items[pj].size += items[pi].size;
+        }
+        else
+        {
+            items[pj].parent = pi;
+            items[pi].size += items[pj].size;
         }
     }
-    
-    // by merging, number of clusters decreases by 1
-    nClusters--;
 }
 
-int UNIONFIND::ClusterCount(void)
-{ return nClusters; }
 
-void UNIONFIND::resize(int newsize)
+// retrieve root of given element
+int UnionFind::Find(int i)
 {
-    if (newsize == 0)
-    {
-        newsize = ((size == 0) ? UFDEFSIZE : size * 2);
-    }
-    else
-    {
-        int k;
-        for (k = UFDEFSIZE; k < newsize; k *= 2) ;
-        newsize = k;
-    }
+    if ((i < 0) || (i >= items.size()))
+        throw UNIONFIND_ERR_INDEXOUTOFRANGE;
+        
+    int q = i;
     
-    UFNode *p = (UFNode *) malloc(sizeof(UFNode) * newsize);
-    memset((void *) p, 0, sizeof(UFNode) * newsize);
-    
-    if (A) 
+    // iterate until we find the root of i's component, compacting path along the way
+    while (items[q].parent != q)
     {
-        memcpy((void *)p, (void *)A, size * sizeof(UFNode));
-        free(A);
+        int p = items[q].parent;            // p points to q's parent
+        items[q].parent = items[p].parent;  // make q point to p's parent (eliminating intermediate hop through p)
+        q = p;                              // move pointer upward
     }
     
-    A = p;
-    size = newsize;
+    return q;
+}
+
+// return size of given element's component
+int UnionFind::Size(int i)
+{
+    if ((i < 0) || (i >= items.size()))
+        throw UNIONFIND_ERR_INDEXOUTOFRANGE;
+        
+    int pi = Find(i);                       // find root of i's component
+    return items[pi].size;                  // and return component's size
 }

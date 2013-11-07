@@ -30,7 +30,7 @@ typedef std::vector<Vertex> VertexSet;          // vector of Vertex structures
 class Edge {
 	friend class Graph;                         // allow Graph class to access Edge class fields
 	
-	private:
+	public:
 	EdgeID   idEdge;                            // edge id
 	VertexID idSrc;                             // source vertex id
 	VertexID idDst;                             // destination vertex id
@@ -91,6 +91,8 @@ class Graph {
 	
 	void AddEdge(VertexID idSrc, VertexID idDst);   // add an edge from idSrc to idDst, assumes w = 1.0
 	void AddEdge(VertexID idSrc, VertexID idDst, double w);	    // add an edge from idSrc to idDst with given weight
+    void GetEdge(EdgeID idEdge, Edge &e);           // retrieve requested edge
+    
 	VertexID AddVertex(void);	                    // add a vertex to the graph
     VertexID AnyVertex(void);                       // return id of a randomly selected vertex
     EdgeID   AnyEdge(void);                         // return id of a randomly selected edge

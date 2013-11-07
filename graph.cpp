@@ -95,7 +95,7 @@ VertexID Graph::AnyVertex(void)
 {   return (VertexID) (pV->size() * getRandom());   }
 
 // returns a randomly selected edge (id)
-EdgeID Graph::AnyVertex(void)
+EdgeID Graph::AnyEdge(void)
 {   return (EdgeID) (pE->size() * getRandom()); }
 
 // add an edge from vertex idSrc to vertex idDst.  Assumes a path length of 1.0
@@ -129,6 +129,17 @@ void Graph::AddEdge(VertexID idSrc, VertexID idDst, double w)
 
 }
 
+// return the requested edge
+void Graph::GetEdge(EdgeID idEdge, Edge &e)
+{
+    if ((idEdge < 0) || (idEdge >= pE->size()))
+        throw GRAPH_ERR_INDEXOUTOFRANGE;
+        
+    e.idEdge = (*pE)[idEdge].idEdge;
+    e.idSrc  = (*pE)[idEdge].idSrc;
+    e.idDst  = (*pE)[idEdge].idDst;
+    e.w      = (*pE)[idEdge].w;
+}
 
 // read a graph from the given filename.  The file is assumed to have the following structure:
 // FIRST LINE: contains the number of vertices in the graph (integer)

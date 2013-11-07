@@ -1,34 +1,33 @@
 #ifndef _UNIONFIND_H_
 #define _UNIONFIND_H_
 
-struct structUFNode {
-    int id;
+#include <vector>
+
+typedef enum enumUnionFindError {
+    UNIONFIND_ERR_INDEXOUTOFRANGE,
+    UNIONFIND_ERR_INVALIDSIZE
+    } UnionFindError;
+    
+class UFNode {
     int parent;
-    int rank;
     int size;
+    
+    friend class UnionFind;
 };
 
-typedef structUFNode UFNode;
 
-class UNIONFIND
-{
+class UnionFind {
+
     public:
-    UNIONFIND(void);
-    UNIONFIND(int size);
-    ~UNIONFIND(void);
+    UnionFind(int size);
+    ~UnionFind(void);
     
-    void Init(int size);
-    void Union(int x, int y);
-    int Find(int x);
-    int ClusterCount(void);
+    void Join(int i, int j);            // join elements i and j
+    int  Find(int i);                   // retrieve root of element i
+    int  Size(int i);                   // return size of element i's component
     
     private:
-    UFNode *A;
-    int nElements;
-    int nClusters;
-    int size;
-    
-    void resize(int newsize);
+    std::vector<UFNode> items;
 };
 
 #endif
