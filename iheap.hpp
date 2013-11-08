@@ -256,8 +256,8 @@ bool IndexedHeap<NUMERICWEIGHT, DATATYPE>::find(int clientIndex, NUMERICWEIGHT &
     
     int i = vI[clientIndex];
     
-    w = vH[i].w;
-    dRef = vH[i].data;
+    w = vH[heapIndex(i)].w;
+    dRef = vH[heapIndex(i)].data;
     return true;
 }
 

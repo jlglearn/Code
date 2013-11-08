@@ -26,6 +26,8 @@ GMSTResults * GraphMinimalSpanningTree::Prim(Graph &g)
     GMSTResults *pR = new GMSTResults;                          // allocate object to return MST
     if (!pR) throw GMST_ERR_OUTOFMEMORY;
     
+    pR->wTotal = 0.0;                                           // start with 0 total cost
+    
     // initialize heap to contain the single null edge from the source vertex to itself, with cost 0
     H.addItem(idSource, 0, NULLEDGE);
     
@@ -36,7 +38,7 @@ GMSTResults * GraphMinimalSpanningTree::Prim(Graph &g)
         EdgeID   idEdge;
         double   w;
 
-        H.getMin(idVertex, w, idEdge);
+        H.getMin(idVertex, w, idEdge);      // find least-cost edge (idEdge) to (idVertex) with cost (w)
         
         // skip if already seen
         if (R[idVertex] != NOTVISITED)
@@ -50,7 +52,8 @@ GMSTResults * GraphMinimalSpanningTree::Prim(Graph &g)
         // unless the special case for starting vertex, add edge to MST
         if (idEdge != NULLEDGE) 
         {
-            pR->E.push_back(idEdge);
+            pR->E.push_back(idEdge);    // add id of this edge to MST
+            pR->wTotal += w;            // maintain running total cost
         }
         
         // terminate early if we have reached all possible vertices
@@ -103,6 +106,9 @@ GMSTResults * GraphMinimalSpanningTree::Kruskal(Graph &g)
     }
     
     GMSTResults *pR = new GMSTResults;              // allocate memory for resulting MST
+    if (!pR) throw GMST_ERR_OUTOFMEMORY;
+    
+    pR->wTotal = 0.0;                               // start with 0 total cost
     
     // iterate until we find a complete MST or no more edges to explore
     while (!H.empty())
@@ -123,6 +129,7 @@ GMSTResults * GraphMinimalSpanningTree::Kruskal(Graph &g)
         
         // add this edge to resulting MST
         pR->E.push_back(idEdge);
+        pR->wTotal += w;
         
         // remember that endpoints now connected in MST
         U.Join(e.idSrc, e.idDst);

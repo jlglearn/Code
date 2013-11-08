@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include "debug.h"
 #include "graph.h"
 
 // utility function to return a random number
@@ -108,23 +109,27 @@ void Graph::AddEdge(VertexID idSrc, VertexID idDst, double w)
     // make sure idSrc and idDst are valid vertex ids
 	CheckVertex(idSrc);
 	CheckVertex(idDst);
+    
+    EdgeID idEdge = pE->size();                     // obtain next edge id
 	
     // create edge
 	Edge e;
-    e.idEdge = pE->size();                          // obtain next edge id
+    e.idEdge = idEdge;                              // record edge id
 	e.idSrc  = idSrc;                               // record source vertex id
 	e.idDst  = idDst;                               // record destination vertex id
 	e.w      = w;                                   // record length (cost, weigth, etc)
-	pE->push_back(e);                               // add to set
+    
+    // add to EdgeSet
+	pE->push_back(e);
 	
-	(*pV)[idSrc].OE.push_back(e.idEdge);            // record as an outgoing edge at source vertex
-	(*pV)[idDst].IE.push_back(e.idEdge);            // record as an incoming edge at destination vertex
+	(*pV)[idSrc].OE.push_back(idEdge);              // record as an outgoing edge at source vertex
+	(*pV)[idDst].IE.push_back(idEdge);              // record as an incoming edge at destination vertex
 	
 	if (!fDirected)
 	{
         // if graph is undirected, also record in opposite direction
-		(*pV)[idSrc].IE.push_back(e.idEdge);        // record as an ougoing edge at destination vertex
-		(*pV)[idDst].OE.push_back(e.idEdge);        // record as an incoming edge at source vertex
+		(*pV)[idSrc].IE.push_back(idEdge);          // record as an ougoing edge at destination vertex
+		(*pV)[idDst].OE.push_back(idEdge);          // record as an incoming edge at source vertex
 	}
 
 }
@@ -134,6 +139,8 @@ void Graph::GetEdge(EdgeID idEdge, Edge &e)
 {
     if ((idEdge < 0) || (idEdge >= pE->size()))
         throw GRAPH_ERR_INDEXOUTOFRANGE;
+        
+    ASSERT((*pE)[idEdge].idEdge == idEdge, "Graph::GetEdge(): Unexpected: (*pE)[idEdge].idEdge != idEdge");
         
     e.idEdge = (*pE)[idEdge].idEdge;
     e.idSrc  = (*pE)[idEdge].idSrc;

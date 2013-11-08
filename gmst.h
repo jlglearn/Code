@@ -6,6 +6,7 @@
 
 typedef struct structGMSTResults {
     EdgeIDSet  E;
+    double     wTotal;          // total weight (cost) of MST
 } GMSTResults;
 
 class GraphMinimalSpanningTree {
