@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
-#include "debug.h"
 #include "graph.h"
 
 // utility function to return a random number
@@ -29,7 +28,8 @@ Graph::Graph(void)
 	pE = new EdgeSet;
 	if (!pE) throw GRAPH_ERR_OUTOFMEMORY;
 	
-	fDirected = false;
+	fDirected = false;                      // assume graph is undirected
+    eConnected = GRAPH_CONNECTED_UNKNOWN;   // we don't know whether graph is connected, yet
 }
 
 // default Graph destructor, deallocate memory used for set of vertices and set of edges
@@ -58,7 +58,8 @@ void Graph::Reset(int nVertices)
 			(*pV)[i].idVertex = (VertexID) i;
 	}
 	
-	fDirected = false;          // assume graph is undirected
+	fDirected = false;                          // assume graph is undirected
+    eConnected = GRAPH_CONNECTED_UNKNOWN;       // don't know yet whether graph is connected
 }
 
 // return the number of vertices in the graph
@@ -88,6 +89,10 @@ VertexID Graph::AddVertex(void)
 	Vertex v;                                       // create an empty vertex structure
 	v.idVertex = idVertex;                          // set id
 	pV->push_back(v);                               // add to set
+    
+    // newly added vertex is not connected, so graph can't possibly be connected
+    eConnected = GRAPH_UNCONNECTED;
+    
 	return idVertex;                                // return ID of newly created vertex
 }
 
@@ -131,6 +136,11 @@ void Graph::AddEdge(VertexID idSrc, VertexID idDst, double w)
 		(*pV)[idSrc].IE.push_back(idEdge);          // record as an ougoing edge at destination vertex
 		(*pV)[idDst].OE.push_back(idEdge);          // record as an incoming edge at source vertex
 	}
+    
+    // after adding a new edge a previously unconnected graph could become connected, 
+    // a connected graph remains connected
+    if (eConnected != GRAPH_CONNECTED) 
+        eConnected = GRAPH_CONNECTED_UNKNOWN;
 
 }
 
@@ -139,8 +149,6 @@ void Graph::GetEdge(EdgeID idEdge, Edge &e)
 {
     if ((idEdge < 0) || (idEdge >= pE->size()))
         throw GRAPH_ERR_INDEXOUTOFRANGE;
-        
-    ASSERT((*pE)[idEdge].idEdge == idEdge, "Graph::GetEdge(): Unexpected: (*pE)[idEdge].idEdge != idEdge");
         
     e.idEdge = (*pE)[idEdge].idEdge;
     e.idSrc  = (*pE)[idEdge].idSrc;
@@ -236,7 +244,28 @@ NeighborSet *Graph::Neighbors(VertexID idVertex)
 bool Graph::isDirected(void)
 {   return fDirected;   }
 
+// determine whether the graph is connected
+// returns true if connected, false otherwise
+bool Graph::isConnected(void)
+{
+    if (eConnected == GRAPH_CONNECTED_UNKNOWN)
+    {
+        if (BFT(AnyVertex(), 0) == pV->size())
+        {
+            // visited all nodes during a traversal, graph is connected
+            eConnected = GRAPH_CONNECTED;
+        }
+        else
+        {
+            // at least one unvisited node during traversal, graph is disconnected
+            eConnected = GRAPH_UNCONNECTED;
+        }
+    }
+    
+    return (eConnected == GRAPH_CONNECTED);
+}
 
+// ----------------------------------------------------------------------------    
 // do a Breadth-First-Traversal of the graph, starting at given source vertex (idSrc)
 //
 // parameters:
@@ -262,19 +291,27 @@ bool Graph::isDirected(void)
 //      VertexID idSrc:     ID of source vertex (where traversal started)
 //      VertexID idVertex:  ID of current vertex, only used if op == GRAPH_TRAVERSAL_VISIT
 //      void *pArgs:        A pointer to an arbitrary object, provided by the client.
+//
+// return value: number of nodes visited during traversal (integer)
+// ----------------------------------------------------------------------------
 int Graph::BFT(VertexID idSrc, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID, void *), void *pArgs)
 {	return Traversal(GRAPH_TRAVERSAL_BFT, idSrc, fn, pArgs);	}
 
 
-
+// ----------------------------------------------------------------------------
 // do a Depth-First-Traversal of the graph, starting at given source vertex.
 // for parameter semantics, see description of BFT(), above
+//
+// return value: nubmer of nodes visited during traversal (integer)
+// ----------------------------------------------------------------------------
 int Graph::DFT(VertexID idSrc, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID, void *), void *pArgs)
 {	return Traversal(GRAPH_TRAVERSAL_DFT, idSrc, fn, pArgs);	}
 
 
-
-// generate a random graph of N vertices, directed/undirected, with density p, and random edge length within specified range
+// ----------------------------------------------------------------------------
+// generate a random graph of N vertices, directed/undirected, with density p, 
+// and random edge length within specified range
+// // ----------------------------------------------------------------------------
 void Graph::GenerateRandom(int N, bool directed, double p, double minLength, double maxLength)
 {
 	if (N < 0) throw GRAPH_ERR_BADGRAPHSIZE;
@@ -321,7 +358,11 @@ inline void Graph::CheckVertex(VertexID idVertex)
 //
 //      Callback funtion (optional): for details see BFT() above
 //
-//      a pointer to an arbitrary client-defined object (optional), will be supplied to each invocation of callback function.
+//      a pointer to an arbitrary client-defined object (optional), will be 
+//                supplied to each invocation of callback function.
+//
+// return value: number of nodes visited during traversal (integer)
+// ----------------------------------------------------------------------------
 int Graph::Traversal(GraphTraversalType gtt, VertexID idSrc, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID, void *), void *pArgs)
 {
 

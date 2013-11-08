@@ -1,12 +1,12 @@
 #ifndef _GMST_H_
 #define _GMST_H_
 
-#include "debug.h"
 #include "graph.h"
 
 typedef struct structGMSTResults {
-    EdgeIDSet  E;
+    VertexID   idSrc;           // source vertex (0 for MST's computed by Kruskal's algorithm
     double     wTotal;          // total weight (cost) of MST
+    EdgeIDSet  E;               // std::vector<EdgeID>: set of ids of edges that form MST    
 } GMSTResults;
 
 class GraphMinimalSpanningTree {
@@ -15,6 +15,7 @@ class GraphMinimalSpanningTree {
     GraphMinimalSpanningTree(void);
     ~GraphMinimalSpanningTree(void);
     GMSTResults *Prim(Graph &g);
+    GMSTResults *Prim(Graph &g, VertexID idSource);
     GMSTResults *Kruskal(Graph &g);
 };
 

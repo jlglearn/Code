@@ -52,6 +52,13 @@ class Neighbor {
 typedef std::vector<Neighbor> NeighborSet;      // vector of Neighbor structures
 
 
+// useful internal constants used to specify connected state of the graph
+typedef enum enumGraphConnected {
+    GRAPH_CONNECTED_UNKNOWN,
+    GRAPH_CONNECTED,
+    GRAPH_UNCONNECTED
+} GraphConnectedState;
+
 // useful constants to define traversal types (only used internally, not by client code)
 typedef enum enumGraphTraversalType {
 	GRAPH_TRAVERSAL_BFT,
@@ -88,6 +95,7 @@ class Graph {
     void Write(char *filename);                 // write graph to file
 	void SetDirected(void);                     // mark graph as directed
     bool isDirected(void);                      // return whether graph is directed
+    bool isConnected(void);                     // return whether graph is connected
 	
 	void AddEdge(VertexID idSrc, VertexID idDst);   // add an edge from idSrc to idDst, assumes w = 1.0
 	void AddEdge(VertexID idSrc, VertexID idDst, double w);	    // add an edge from idSrc to idDst with given weight
@@ -115,6 +123,7 @@ class Graph {
 	EdgeSet   *pE;                              // pointer to set of edges
 	VertexSet *pV;                              // pointer to set of vertices
 	bool fDirected;                             // set to true if graph is directed
+    GraphConnectedState eConnected;             // connected state of the graph
 	
 	inline void CheckVertex(VertexID idVertex); // utility function to check whether idVertex is a valid vertex id.
     

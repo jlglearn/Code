@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <vector>
-#include "debug.h"
 
 
 typedef enum enumIndexedHeapError {
@@ -112,8 +111,6 @@ void IndexedHeap<NUMERICWEIGHT, DATATYPE>::addItem(int clientIndex, NUMERICWEIGH
     {
         // item already in heap, update values
         
-        ASSERT(vH[heapIndex(cIndex)].index == clientIndex, "Unexpected: vH[heapIndex(cIndex)].index != clientIndex");
-        
         NUMERICWEIGHT oldW = vH[heapIndex(cIndex)].w;
         
         vH[heapIndex(cIndex)].w = w;
@@ -207,9 +204,7 @@ void IndexedHeap<NUMERICWEIGHT, DATATYPE>::heapifyDown(int i)
 
 template <class NUMERICWEIGHT, class DATATYPE>
 void IndexedHeap<NUMERICWEIGHT, DATATYPE>::swap(int i, int j)
-{
-    ASSERT((i > 0) && (i <= vH.size()) && (j > 0) && (j <= vH.size()), "IndexedHeap::swap(): invalid index");
-           
+{          
     IndexedHeapNode<NUMERICWEIGHT, DATATYPE> hn;
     hn = vH[heapIndex(i)];
     vH[heapIndex(i)] = vH[heapIndex(j)];
