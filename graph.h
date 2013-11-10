@@ -121,8 +121,8 @@ class Graph {
 	
 	
 	private:
-	EdgeSet   *pE;                              // pointer to set of edges
-	VertexSet *pV;                              // pointer to set of vertices
+	EdgeSet   ES;                               // pointer to set of edges
+	VertexSet VS;                               // pointer to set of vertices
 	bool fDirected;                             // set to true if graph is directed
     GraphConnectedState eConnected;             // connected state of the graph
 	

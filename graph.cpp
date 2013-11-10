@@ -23,12 +23,6 @@ Vertex::~Vertex(void)
 // assumes graph is undirected.
 Graph::Graph(void)
 {
-	pV = new VertexSet;
-	if (!pV) throw GRAPH_ERR_OUTOFMEMORY;
-	
-	pE = new EdgeSet;
-	if (!pE) throw GRAPH_ERR_OUTOFMEMORY;
-	
 	fDirected = false;                      // assume graph is undirected
     eConnected = GRAPH_CONNECTED_UNKNOWN;   // we don't know whether graph is connected, yet
 }
@@ -36,27 +30,27 @@ Graph::Graph(void)
 // default Graph destructor, deallocate memory used for set of vertices and set of edges
 Graph::~Graph(void)
 {
-	if (pE) delete pE;
-	if (pV) delete pV;
+    ES.clear();
+    VS.clear();
 }
 
 // clear all graph information and internal states.  Create an empty graph of nVertices vertices
 void Graph::Reset(int nVertices)
 {
-	if (pV->size() > 0) pV->clear();
-	if (pE->size() > 0) pE->clear();
+    if (VS.size() > 0) VS.clear();
+    if (ES.size() > 0) ES.clear();
 	
 	if (nVertices > 0) 
 	{
-		pV->resize(nVertices);
+        VS.resize(nVertices);
 		
-		if (pV->size() != nVertices)
+		if (VS.size() != nVertices)
 			throw GRAPH_ERR_OUTOFMEMORY;
 			
         // vertices are created with initial invalid ID == -1, assign proper and valid IDs
         // IDs are the 0-based indices into the vector of vertices.
 		for (int i = 0; i < nVertices; i++)
-			(*pV)[i].idVertex = (VertexID) i;
+			VS[i].idVertex = (VertexID) i;
 	}
 	
 	fDirected = false;                          // assume graph is undirected
@@ -65,17 +59,17 @@ void Graph::Reset(int nVertices)
 
 // return the number of vertices in the graph
 int Graph::V(void)
-{	return pV->size();	}
+{	return VS.size();	}
 
 // return the number of edges in the graph
 int Graph::E(void)
-{	return pE->size();	}
+{	return ES.size();	}
 
 // set the graph to be directed.  A graph can be marked as directed only if no edges have been added.
 void Graph::SetDirected(void)
 {	
     // if graph has any edges, then it's too late to mark it as directed
-	if (pE->size() > 0) throw GRAPH_ERR_ILLEGALOPERATION;
+	if (ES.size() > 0) throw GRAPH_ERR_ILLEGALOPERATION;
     
     // mark as directed
 	fDirected = true;	
@@ -86,10 +80,10 @@ void Graph::SetDirected(void)
 // returns the ID assigned to the newly created vertex
 VertexID Graph::AddVertex(void)
 {
-	VertexID idVertex = (VertexID) pV->size();      // obtain the next ID in the sequence
+	VertexID idVertex = (VertexID) VS.size();       // obtain the next ID in the sequence
 	Vertex v;                                       // create an empty vertex structure
 	v.idVertex = idVertex;                          // set id
-	pV->push_back(v);                               // add to set
+	VS.push_back(v);                                // add to set
     
     // newly added vertex is not connected, so graph can't possibly be connected
     eConnected = GRAPH_UNCONNECTED;
@@ -99,11 +93,11 @@ VertexID Graph::AddVertex(void)
 
 // returns a randomly selected vertex (id)
 VertexID Graph::AnyVertex(void)
-{   return (VertexID) (pV->size() * getRandom());   }
+{   return (VertexID) (VS.size() * getRandom());   }
 
 // returns a randomly selected edge (id)
 EdgeID Graph::AnyEdge(void)
-{   return (EdgeID) (pE->size() * getRandom()); }
+{   return (EdgeID) (ES.size() * getRandom()); }
 
 // add an edge from vertex idSrc to vertex idDst.  Assumes a path length of 1.0
 void Graph::AddEdge(VertexID idSrc, VertexID idDst)
@@ -116,7 +110,7 @@ void Graph::AddEdge(VertexID idSrc, VertexID idDst, double w)
 	CheckVertex(idSrc);
 	CheckVertex(idDst);
     
-    EdgeID idEdge = pE->size();                     // obtain next edge id
+    EdgeID idEdge = ES.size();                      // obtain next edge id
 	
     // create edge
 	Edge e;
@@ -126,16 +120,16 @@ void Graph::AddEdge(VertexID idSrc, VertexID idDst, double w)
 	e.w      = w;                                   // record length (cost, weigth, etc)
     
     // add to EdgeSet
-	pE->push_back(e);
+	ES.push_back(e);
 	
-	(*pV)[idSrc].OE.push_back(idEdge);              // record as an outgoing edge at source vertex
-	(*pV)[idDst].IE.push_back(idEdge);              // record as an incoming edge at destination vertex
+	VS[idSrc].OE.push_back(idEdge);              // record as an outgoing edge at source vertex
+	VS[idDst].IE.push_back(idEdge);              // record as an incoming edge at destination vertex
 	
 	if (!fDirected)
 	{
         // if graph is undirected, also record in opposite direction
-		(*pV)[idSrc].IE.push_back(idEdge);          // record as an ougoing edge at destination vertex
-		(*pV)[idDst].OE.push_back(idEdge);          // record as an incoming edge at source vertex
+		VS[idSrc].IE.push_back(idEdge);          // record as an outgoing edge at destination vertex
+		VS[idDst].OE.push_back(idEdge);          // record as an incoming edge at source vertex
 	}
     
     // after adding a new edge a previously unconnected graph could become connected, 
@@ -148,13 +142,13 @@ void Graph::AddEdge(VertexID idSrc, VertexID idDst, double w)
 // return the requested edge
 void Graph::GetEdge(EdgeID idEdge, Edge &e)
 {
-    if ((idEdge < 0) || (idEdge >= pE->size()))
+    if ((idEdge < 0) || (idEdge >= ES.size()))
         throw GRAPH_ERR_INDEXOUTOFRANGE;
         
-    e.idEdge = (*pE)[idEdge].idEdge;
-    e.idSrc  = (*pE)[idEdge].idSrc;
-    e.idDst  = (*pE)[idEdge].idDst;
-    e.w      = (*pE)[idEdge].w;
+    e.idEdge = ES[idEdge].idEdge;
+    e.idSrc  = ES[idEdge].idSrc;
+    e.idDst  = ES[idEdge].idDst;
+    e.w      = ES[idEdge].w;
 }
 
 // read a graph from the given filename.  The file is assumed to have the following structure:
@@ -199,12 +193,10 @@ void Graph::Write(char *filename)
 {
     std::ofstream f(filename);
     
-    f << pV->size() << "\n";
-    for (int iEdge = 0; iEdge < pE->size(); iEdge++)
+    f << VS.size() << "\n";
+    for (int iEdge = 0; iEdge < ES.size(); iEdge++)
     {
-        f << (*pE)[iEdge].idSrc << " "
-          << (*pE)[iEdge].idDst << " "
-          << (*pE)[iEdge].w << "\n";
+        f << ES[iEdge].idSrc << " " << ES[iEdge].idDst << " " << ES[iEdge].w << "\n";
     }
     f.close();
 }
@@ -215,23 +207,23 @@ NeighborSet *Graph::Neighbors(VertexID idVertex)
 	CheckVertex(idVertex);              // make sure idVertex is a valid vertex id
     
     // get the number of adjacent vertices
-	int nNeighbors = (*pV)[idVertex].OE.size();
+	int nNeighbors = VS[idVertex].OE.size();
 	
     // allocate memory for the set of adjacent vertices
 	NeighborSet *pN = new NeighborSet(nNeighbors);
 	
 	for (int iNeighbor = 0; iNeighbor < nNeighbors; iNeighbor++)
 	{
-		EdgeID idEdge = (*pV)[idVertex].OE[iNeighbor];  // get the id of adjacent outgoing edge
-		VertexID idNeighbor = (*pE)[idEdge].idDst;      // get the id of destination vertex
+		EdgeID idEdge = VS[idVertex].OE[iNeighbor];  // get the id of adjacent outgoing edge
+		VertexID idNeighbor = ES[idEdge].idDst;      // get the id of destination vertex
 		
         // if graph is undirected, only one edge is stored to represent both directions,
         // it is possible that we need to consider the reverse direction to get the 
         // correct destination vertex id		
         if ((!fDirected) && (idNeighbor == idVertex))
-			idNeighbor = (*pE)[idEdge].idSrc;
+			idNeighbor = ES[idEdge].idSrc;
 			
-		double w = (*pE)[idEdge].w;                     // get the edge length
+		double w = ES[idEdge].w;                     // get the edge length
 		
         (*pN)[iNeighbor].idEdge = idEdge;               // record edge id
 		(*pN)[iNeighbor].idNeighbor = idNeighbor;       // record id of adjacent vertex
@@ -251,7 +243,7 @@ bool Graph::isConnected(void)
 {
     if (eConnected == GRAPH_CONNECTED_UNKNOWN)
     {
-        if (BFT(AnyVertex(), 0) == pV->size())
+        if (BFT(AnyVertex(), 0) == VS.size())
         {
             // visited all nodes during a traversal, graph is connected
             eConnected = GRAPH_CONNECTED;
@@ -274,7 +266,7 @@ double Graph::d(VertexID idSrc, VertexID idDst)
 {    
     EdgeID idEdge = findEdge(idSrc, idDst);
     if (idEdge == -1) return INFINITY;   
-    return (*pE)[idEdge].w;
+    return ES[idEdge].w;
 }
 
 
@@ -286,14 +278,14 @@ EdgeID Graph::findEdge(VertexID idSrc, VertexID idDst)
     CheckVertex(idSrc);
     CheckVertex(idDst);
 
-    for (int i = 0; i < (*pV)[idSrc].OE.size(); i++)
+    for (int i = 0; i < VS[idSrc].OE.size(); i++)
     {
-        EdgeID idEdge = (*pV)[idSrc].OE[i];
-        if ((idDst == (*pE)[idEdge].idDst) && (idSrc == (*pE)[idEdge].idSrc))
+        EdgeID idEdge = VS[idSrc].OE[i];
+        if ((idDst == ES[idEdge].idDst) && (idSrc == ES[idEdge].idSrc))
             return idEdge;
             
         // if graph is undirected, check also the edge running in the opposite direction
-        if ((!fDirected) && (idDst == (*pE)[idEdge].idSrc) && (idSrc == (*pE)[idEdge].idDst))
+        if ((!fDirected) && (idDst == ES[idEdge].idSrc) && (idSrc == ES[idEdge].idDst))
             return idEdge;
     }
     
