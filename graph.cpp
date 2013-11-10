@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <math.h>
 #include "graph.h"
 
 // utility function to return a random number
@@ -264,6 +265,41 @@ bool Graph::isConnected(void)
     
     return (eConnected == GRAPH_CONNECTED);
 }
+
+// return the distance (or cost) of an edge from vertex idSrc to vertex idDst
+//
+// returns the distance or cost of the given edge, or INFINITY if edge does not exist
+// ----------------------------------------------------------------------------
+double Graph::d(VertexID idSrc, VertexID idDst)
+{    
+    EdgeID idEdge = findEdge(idSrc, idDst);
+    if (idEdge == -1) return INFINITY;   
+    return (*pE)[idEdge].w;
+}
+
+
+// return the ID of the edge from vertex idSrc to vertex idDst, or -1 if edge does not exist
+// ----------------------------------------------------------------------------
+EdgeID Graph::findEdge(VertexID idSrc, VertexID idDst)
+{
+    // make sure idSrc and idDst exist
+    CheckVertex(idSrc);
+    CheckVertex(idDst);
+
+    for (int i = 0; i < (*pV)[idSrc].OE.size(); i++)
+    {
+        EdgeID idEdge = (*pV)[idSrc].OE[i];
+        if ((idDst == (*pE)[idEdge].idDst) && (idSrc == (*pE)[idEdge].idSrc))
+            return idEdge;
+            
+        // if graph is undirected, check also the edge running in the opposite direction
+        if ((!fDirected) && (idDst == (*pE)[idEdge].idSrc) && (idSrc == (*pE)[idEdge].idDst))
+            return idEdge;
+    }
+    
+    return (VertexID) -1;
+}
+
 
 // ----------------------------------------------------------------------------    
 // do a Breadth-First-Traversal of the graph, starting at given source vertex (idSrc)

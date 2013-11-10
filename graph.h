@@ -108,6 +108,7 @@ class Graph {
 		
 	int V(void);                                // return number of vertices
 	int E(void);                                // return number of edges
+    double d(VertexID idSrc, VertexID idDst);   // return the distance of edge from idSrc to idDst
 	
     // Breadth-First-Traversal of the graph
 	int BFT(VertexID idVertex, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID, void *) = 0, void *pArgs = 0);
@@ -126,6 +127,7 @@ class Graph {
     GraphConnectedState eConnected;             // connected state of the graph
 	
 	inline void CheckVertex(VertexID idVertex); // utility function to check whether idVertex is a valid vertex id.
+    EdgeID findEdge(VertexID idSrc, VertexID idDst);  // returns the ID of the edge from idSrc to idDst
     
     // internal function to generate a graph traversal of the given type (BFT, DFT)
 	int Traversal(GraphTraversalType gtt, VertexID idVertex, GraphCallbackAction fn(GraphCallbackOp, int, int, VertexID, VertexID, void *), void *pArgs);
