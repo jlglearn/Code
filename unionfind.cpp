@@ -1,9 +1,22 @@
 #include "unionfind.h"
 
+UnionFind::UnionFind(void)
+{   Reset(0);   }
+
 UnionFind::UnionFind(int size)
+{   Reset(size);    }
+
+UnionFind::~UnionFind(void)
+{
+}
+
+void UnionFind::Reset(int size)
 {
     if (size < 0) throw UNIONFIND_ERR_INVALIDSIZE;
     
+    if (items.size() > 0) 
+        items.clear();
+        
     items.resize(size);         // make room
     
     for (int i = 0; i < items.size(); i++)
@@ -13,9 +26,7 @@ UnionFind::UnionFind(int size)
     }
 }
 
-UnionFind::~UnionFind(void)
-{
-}
+
 
 // join i to j
 void UnionFind::Join(int i, int j)

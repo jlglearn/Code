@@ -19,8 +19,10 @@ class UFNode {
 class UnionFind {
 
     public:
+    UnionFind(void);
     UnionFind(int size);
     ~UnionFind(void);
+    void Reset(int size);
     
     void Join(int i, int j);            // join elements i and j
     int  Find(int i);                   // retrieve root of element i

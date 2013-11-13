@@ -19,8 +19,10 @@ class UFNode {
 class UnionFind {
 
     public:
+    UnionFind(void);
     UnionFind(int size);
     ~UnionFind(void);
+    void Reset(int size);
     
     void Join(int i, int j);            // join elements i and j
     int  Find(int i);                   // retrieve root of element i
@@ -31,10 +33,21 @@ class UnionFind {
 };
 
 
+UnionFind::UnionFind(void)
+{   Reset(0);   }
+
 UnionFind::UnionFind(int size)
+{   Reset(size);    }
+
+
+
+void UnionFind::Reset(int size)
 {
     if (size < 0) throw UNIONFIND_ERR_INVALIDSIZE;
     
+    if (items.size() > 0) 
+        items.clear();
+        
     items.resize(size);         // make room
     
     for (int i = 0; i < items.size(); i++)
